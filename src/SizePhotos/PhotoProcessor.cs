@@ -36,7 +36,6 @@ namespace SizePhotos
 		{
             var detail = new PhotoDetail();
             var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
-            var physicalOrigPath = OriginalTarget.GetLocalPathForPhoto(jpgName);
             var rawPath = RawTarget.GetLocalPathForPhoto(photoPath);
             var wand = MagickWandApi.NewMagickWand();
             string ppmFile = null;
@@ -67,7 +66,7 @@ namespace SizePhotos
             
             MagickWandApi.MagickStripImage(wand);
             MagickWandApi.MagickSetImageCompressionQuality(wand, (UIntPtr)JPG_COMPRESSION_QUALITY);
-            MagickWandApi.MagickWriteImage(wand, physicalOrigPath);
+            MagickWandApi.MagickWriteImage(wand, OriginalTarget.GetLocalPathForPhoto(jpgName));
                 
             detail.OriginalInfo = new PhotoInfo {
                 WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
