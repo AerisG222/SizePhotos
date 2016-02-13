@@ -17,7 +17,7 @@ for many years, and thought it might be useful for others to use directly
 or as a starting point for more specific needs.
 
 ## Using
-SizePhotos -c "category" -o c.sql -p /home/user/Desktop/pictures/ -w /images -y 2016
+`SizePhotos -c "category" -o c.sql -p /home/user/Desktop/pictures/ -w /images -y 2016`
 
 Arguments:
 - c = name of the category
