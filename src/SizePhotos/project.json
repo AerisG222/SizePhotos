@@ -1,0 +1,26 @@
+{
+    "title": "SizePhotos",
+    "authors": [ "Mike Morano <mmorano@mikeandwan.us>" ],
+    "licenseUrl": "https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md",
+    "projectUrl": "https://github.com/AerisG222/SizePhotos",
+    "summary": "Tool to prepare photos for a website",
+    "description": "Tool to prepare photos for my website",
+    "tags": [ "photography", "photo", "resize", "scale", "raw", "exif" ],
+    "version": "0.1.0",
+    "compilationOptions": {
+        "emitEntryPoint": true,
+        "warningsAsErrors": true
+    },
+    "commands": {
+        "run": "SizePhotos" 
+    },
+    "dependencies": {
+        "Commons.GetOptions": "2.0.0",
+        "NDCRaw": "0.2.0",
+        "NExifTool": "0.1.0",
+        "NMagickWand": "0.2.0"
+    },
+    "frameworks": {
+        "dnx451": { }
+    }
+}
