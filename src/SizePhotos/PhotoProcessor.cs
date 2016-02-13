@@ -37,42 +37,38 @@ namespace SizePhotos
             var detail = new PhotoDetail();
             var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
             var physicalOrigPath = OriginalTarget.GetLocalPathForPhoto(jpgName);
+            var rawPath = RawTarget.GetLocalPathForPhoto(photoPath);
             var wand = MagickWandApi.NewMagickWand();
             string ppmFile = null;
             
 			detail.ExifData = await ReadExifData(photoPath);
 			
+            // always keep the original in the raw dir
+            File.Move(photoPath, rawPath);
+            detail.RawInfo = new PhotoInfo { WebPath = RawTarget.GetWebPathForPhoto(photoPath) };
+            
             if(IsRawFile(photoPath))
             {
-                detail.RawInfo = new PhotoInfo { WebPath = RawTarget.GetWebPathForPhoto(photoPath) };
-            
                 // nef -> ppm
-                var dcraw = new DCRaw(GetOptimalOptionsForPhoto(photoPath));
-                ppmFile = (await dcraw.ConvertAsync(photoPath)).OutputFilename;
-            
-                // move the raw file into the final raw dir
-                File.Move(photoPath, RawTarget.GetLocalPathForPhoto(photoPath));
+                var dcraw = new DCRaw(GetOptimalOptionsForPhoto(rawPath));
+                ppmFile = (await dcraw.ConvertAsync(rawPath)).OutputFilename;
                 
-                // ppm -> jpg (orig) - details retained in raw file, strip these from orig jpg
+                // read the result
                 MagickWandApi.MagickReadImage(wand, ppmFile);
-                MagickWandApi.MagickStripImage(wand);
-                MagickWandApi.MagickSetImageCompressionQuality(wand, (UIntPtr)JPG_COMPRESSION_QUALITY);
-                MagickWandApi.MagickWriteImage(wand, physicalOrigPath);
-                
+
                 // kill the ppm file as we've already read it into mem
                 File.Delete(ppmFile);
             } 
             else 
             {
-                // copy the orig file into the orig dir
-                File.Move(photoPath, physicalOrigPath);
-                
-                // strip details for remaining sizes
-                MagickWandApi.MagickReadImage(wand, physicalOrigPath);
-                MagickWandApi.MagickStripImage(wand);
-                MagickWandApi.MagickSetImageCompressionQuality(wand, (UIntPtr)JPG_COMPRESSION_QUALITY);
+                // read the source file into our wand
+                MagickWandApi.MagickReadImage(wand, rawPath);
             }
             
+            MagickWandApi.MagickStripImage(wand);
+            MagickWandApi.MagickSetImageCompressionQuality(wand, (UIntPtr)JPG_COMPRESSION_QUALITY);
+            MagickWandApi.MagickWriteImage(wand, physicalOrigPath);
+                
             detail.OriginalInfo = new PhotoInfo {
                 WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
                 Height = (uint)MagickWandApi.MagickGetImageHeight(wand),
