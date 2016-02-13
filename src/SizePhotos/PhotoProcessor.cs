@@ -10,8 +10,8 @@ using NMagickWand;
 
 namespace SizePhotos
 {
-	public class PhotoProcessor
-	{
+    public class PhotoProcessor
+    {
         const int JPG_COMPRESSION_QUALITY = 72;
         
         ResizeTarget RawTarget { get; set; }
@@ -32,16 +32,16 @@ namespace SizePhotos
         }
         
         
-		public async Task<PhotoDetail> ProcessPhoto(string photoPath)
-		{
+        public async Task<PhotoDetail> ProcessPhoto(string photoPath)
+        {
             var detail = new PhotoDetail();
             var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
             var rawPath = RawTarget.GetLocalPathForPhoto(photoPath);
             var wand = MagickWandApi.NewMagickWand();
             string ppmFile = null;
             
-			detail.ExifData = await ReadExifData(photoPath);
-			
+            detail.ExifData = await ReadExifData(photoPath);
+            
             // always keep the original in the raw dir
             File.Move(photoPath, rawPath);
             detail.RawInfo = new PhotoInfo { WebPath = RawTarget.GetWebPathForPhoto(photoPath) };
@@ -100,10 +100,10 @@ namespace SizePhotos
             
             MagickWandApi.DestroyMagickWand(wand);
 
-			return detail;
-		}
-		
-		
+            return detail;
+        }
+        
+        
         static void ScalePhoto(IntPtr wand, uint origHeight, uint origWidth, uint maxHeight, uint maxWidth, string path, out uint height, out uint width)
         {
             var tmpWand = MagickWandApi.CloneMagickWand(wand);
@@ -137,10 +137,10 @@ namespace SizePhotos
         }
         
         
-		static async Task<ExifData> ReadExifData(string photoPath)
-		{
+        static async Task<ExifData> ReadExifData(string photoPath)
+        {
             var et = new ExifTool(new ExifToolOptions());
-			var tags = await et.GetTagsAsync(photoPath);
+            var tags = await et.GetTagsAsync(photoPath);
             
             return new ExifData {
                 AutofocusPoint = GetExifData(tags, "AFPoint"),
@@ -197,21 +197,21 @@ namespace SizePhotos
                 GpsTimeStamp = GetExifData(tags, "GPSTimeStamp"),
                 GpsSatellites = GetExifData(tags, "GPSSatellites")
             };
-		}
-		
-		
-		static string GetExifData(IEnumerable<Tag> exifData, string datapoint)
-		{
+        }
+        
+        
+        static string GetExifData(IEnumerable<Tag> exifData, string datapoint)
+        {
             var tag = exifData.SingleOrDefault(x => string.Equals(x.TagInfo.Name, datapoint, StringComparison.OrdinalIgnoreCase));
             
-			return tag?.Value;
-		}
-		
-				                           
-		static bool IsRawFile(string photoPath)
-		{
-			return !photoPath.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase);
-		}
+            return tag?.Value;
+        }
+        
+                                           
+        static bool IsRawFile(string photoPath)
+        {
+            return !photoPath.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase);
+        }
         
         
         static DCRawOptions GetOptimalOptionsForPhoto(string photoPath)
@@ -242,5 +242,5 @@ namespace SizePhotos
                 DontAutomaticallyBrighten = true
             };
         }
-	}
+    }
 }

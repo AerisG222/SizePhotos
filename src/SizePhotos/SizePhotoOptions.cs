@@ -100,9 +100,9 @@ namespace SizePhotos
         {
             if(WebPhotoRootPath == null ||
                string.IsNullOrEmpty(Outfile) ||
-			   string.IsNullOrEmpty(LocalPhotoRoot) ||
-			   string.IsNullOrEmpty(CategoryName) ||
-			   Year == 0)
+               string.IsNullOrEmpty(LocalPhotoRoot) ||
+               string.IsNullOrEmpty(CategoryName) ||
+               Year == 0)
             {
                 return false;
             }
@@ -112,14 +112,14 @@ namespace SizePhotos
 
         
         public string WebCategoryPath
-		{
-			get
-			{
-				return $"/{WebPhotoRootPath}/{Year}/{CategoryDirectorySegment}/";
-			}
-		}
-		
-		
+        {
+            get
+            {
+                return $"/{WebPhotoRootPath}/{Year}/{CategoryDirectorySegment}/";
+            }
+        }
+        
+        
         public string GetLocalScaledPath(string scaledPathSegment)
         {
             return $"{Path.Combine(LocalPhotoRoot, scaledPathSegment)}{Path.DirectorySeparatorChar}";
