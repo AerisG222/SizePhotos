@@ -13,6 +13,8 @@ namespace SizePhotos
     public class PhotoProcessor
     {
         const int JPG_COMPRESSION_QUALITY = 72;
+        const double DARK_THRESHOLD = 250;
+        
         
         ResizeTarget RawTarget { get; set; }
         ResizeTarget OriginalTarget { get; set; }
@@ -216,8 +218,39 @@ namespace SizePhotos
         
         static DCRawOptions GetOptimalOptionsForPhoto(string photoPath)
         {
-            // TODO: sniff the raw photo and determine between day or night mode
+            if(GetDarkThresholdForRawImage(photoPath) < DARK_THRESHOLD)
+            {
+                Console.WriteLine($"  -using night mode for {photoPath}");
+                return GetOptimalNightOptions();
+            }
+            
             return GetOptimalDayOptions();
+        }
+        
+        
+        static double GetDarkThresholdForRawImage(string path)
+        {
+            var opts = new DCRawOptions {
+                HalfSizeColorImage = true,  // try to speed this up, don't need quality here
+                UseCameraWhiteBalance = true,
+                DontAutomaticallyBrighten = true
+            };
+            
+            var dcraw = new DCRaw(opts);
+            var res = dcraw.Convert(path);
+            
+            var wand = MagickWandApi.NewMagickWand();
+            double mean = 0;
+            double stddev = 0;
+            
+            // read the image, posterize, then figure out how 'dark' it is
+            MagickWandApi.MagickReadImage(wand, res.OutputFilename);
+            MagickWandApi.MagickPosterizeImage(wand, (UIntPtr)3, MagickBooleanType.False);
+            MagickWandApi.MagickGetImageChannelMean(wand, ChannelType.AllChannels, ref mean, ref stddev);
+            
+            MagickWandApi.DestroyMagickWand(wand);
+            
+            return mean;
         }
         
         
