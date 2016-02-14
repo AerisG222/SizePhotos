@@ -250,6 +250,8 @@ namespace SizePhotos
             
             MagickWandApi.DestroyMagickWand(wand);
             
+            File.Delete(res.OutputFilename);
+            
             return mean;
         }
         
