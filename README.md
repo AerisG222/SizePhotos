@@ -1,4 +1,5 @@
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md)
+[![Coverity Scan](https://img.shields.io/coverity/scan/7996.svg)](https://scan.coverity.com/projects/aerisg222-sizephotos)
 
 #SizePhotos
 
