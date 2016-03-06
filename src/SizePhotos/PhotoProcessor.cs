@@ -34,12 +34,11 @@ namespace SizePhotos
         }
         
         
-        public async Task<PhotoDetail> ProcessPhoto(string photoPath)
+        public async Task<PhotoDetail> ProcessPhotoAsync(string photoPath)
         {
             var detail = new PhotoDetail();
             var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
             var rawPath = RawTarget.GetLocalPathForPhoto(photoPath);
-            var wand = MagickWandApi.NewMagickWand();
             string ppmFile = null;
             
             detail.ExifData = await ReadExifData(photoPath);
@@ -48,93 +47,59 @@ namespace SizePhotos
             File.Move(photoPath, rawPath);
             detail.RawInfo = new PhotoInfo { WebPath = RawTarget.GetWebPathForPhoto(photoPath) };
             
-            if(IsRawFile(photoPath))
+            using(var wand = new MagickWand())
             {
-                // nef -> ppm
-                var dcraw = new DCRaw(GetOptimalOptionsForPhoto(rawPath));
-                ppmFile = (await dcraw.ConvertAsync(rawPath)).OutputFilename;
+                if(IsRawFile(photoPath))
+                {
+                    var dcraw = new DCRaw(GetOptimalOptionsForPhoto(rawPath));
+                    ppmFile = (await dcraw.ConvertAsync(rawPath)).OutputFilename;
+                    
+                    wand.ReadImage(ppmFile);
+                    File.Delete(ppmFile);
+                } 
+                else 
+                {
+                    wand.ReadImage(rawPath);
+                }
                 
-                // read the result
-                MagickWandApi.MagickReadImage(wand, ppmFile);
-
-                // kill the ppm file as we've already read it into mem
-                File.Delete(ppmFile);
-            } 
-            else 
-            {
-                // read the source file into our wand
-                MagickWandApi.MagickReadImage(wand, rawPath);
+                wand.StripImage();
+                wand.ImageCompressionQuality = JPG_COMPRESSION_QUALITY;
+                wand.WriteImage(OriginalTarget.GetLocalPathForPhoto(jpgName), true);
+                    
+                detail.OriginalInfo = new PhotoInfo {
+                    WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
+                    Height = wand.ImageHeight,
+                    Width = wand.ImageWidth
+                };
+                
+                detail.ThumbnailInfo = ScalePhoto(wand, ThumbnailTarget, jpgName);
+                detail.FullsizeInfo = ScalePhoto(wand, FullsizeTarget, jpgName);
+                detail.FullerInfo = ScalePhoto(wand, FullerTarget, jpgName);
             }
             
-            MagickWandApi.MagickStripImage(wand);
-            MagickWandApi.MagickSetImageCompressionQuality(wand, (UIntPtr)JPG_COMPRESSION_QUALITY);
-            MagickWandApi.MagickWriteImage(wand, OriginalTarget.GetLocalPathForPhoto(jpgName));
-                
-            detail.OriginalInfo = new PhotoInfo {
-                WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
-                Height = (uint)MagickWandApi.MagickGetImageHeight(wand),
-                Width = (uint)MagickWandApi.MagickGetImageWidth(wand)
-            };
-            
-            uint height;
-            uint width;
-            
-            ScalePhoto(wand, detail.OriginalInfo.Height, detail.OriginalInfo.Width, ThumbnailTarget.MaxHeight, ThumbnailTarget.MaxWidth, ThumbnailTarget.GetLocalPathForPhoto(jpgName), out height, out width);
-            detail.ThumbnailInfo = new PhotoInfo {
-                WebPath = ThumbnailTarget.GetWebPathForPhoto(jpgName),
-                Height = height,
-                Width = width
-            };
-            
-            ScalePhoto(wand, detail.OriginalInfo.Height, detail.OriginalInfo.Width, FullsizeTarget.MaxHeight, FullsizeTarget.MaxWidth, FullsizeTarget.GetLocalPathForPhoto(jpgName), out height, out width);
-            detail.FullsizeInfo = new PhotoInfo {
-                WebPath = FullsizeTarget.GetWebPathForPhoto(jpgName),
-                Height = height,
-                Width = width
-            };
-            
-            ScalePhoto(wand, detail.OriginalInfo.Height, detail.OriginalInfo.Width, FullerTarget.MaxHeight, FullerTarget.MaxWidth, FullerTarget.GetLocalPathForPhoto(jpgName), out height, out width);
-            detail.FullerInfo = new PhotoInfo {
-                WebPath = FullerTarget.GetWebPathForPhoto(jpgName),
-                Height = height,
-                Width = width
-            };
-            
-            MagickWandApi.DestroyMagickWand(wand);
-
             return detail;
         }
         
         
-        static void ScalePhoto(IntPtr wand, uint origHeight, uint origWidth, uint maxHeight, uint maxWidth, string path, out uint height, out uint width)
+        static PhotoInfo ScalePhoto(MagickWand wand, ResizeTarget target, string jpgName)
         {
-            var tmpWand = MagickWandApi.CloneMagickWand(wand);
-            
-            // TODO: might need to adjust compression quality based on scaling amount
-            GetScaledDimensions(origHeight, origWidth, maxHeight, maxWidth, out height, out width);
-            MagickWandApi.MagickScaleImage(tmpWand, (UIntPtr)width, (UIntPtr)height);
-            MagickWandApi.MagickWriteImage(tmpWand, path);
-            
-            MagickWandApi.DestroyMagickWand(tmpWand);
-        }
-        
-        
-        static void GetScaledDimensions(uint height, uint width, uint maxScaledHeight, uint maxScaledWidth, out uint scaledHeight, out uint scaledWidth)
-        {
-            double origRatio = (double) height / (double) width;
-            double requestedRatio = (double) maxScaledHeight / (double) maxScaledWidth;
-            
-            if(origRatio >= requestedRatio)
+            using(var tmpWand = wand.Clone())
             {
-                // height will be the max value, reset the width
-                scaledHeight = maxScaledHeight;
-                scaledWidth = Convert.ToUInt32(((double) 1 / origRatio) * maxScaledHeight);
-            }
-            else
-            {
-                // width will be the max value, reset the height
-                scaledWidth = maxScaledWidth;
-                scaledHeight = Convert.ToUInt32(origRatio * (double) maxScaledWidth);
+                var path = target.GetLocalPathForPhoto(jpgName);
+                uint width, height;
+                
+                wand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
+                
+                // TODO: might need to adjust compression quality based on scaling amount
+                tmpWand.ScaleImage(width, height);
+                tmpWand.WriteImage(path, true);
+                
+                return new PhotoInfo
+                {
+                    WebPath = target.GetWebPathForPhoto(jpgName),
+                    Width = width,
+                    Height = height
+                };
             }
         }
         
@@ -239,20 +204,18 @@ namespace SizePhotos
             var dcraw = new DCRaw(opts);
             var res = dcraw.Convert(path);
             
-            var wand = MagickWandApi.NewMagickWand();
-            double mean = 0;
-            double stddev = 0;
-            
-            // read the image, posterize, then figure out how 'dark' it is
-            MagickWandApi.MagickReadImage(wand, res.OutputFilename);
-            MagickWandApi.MagickPosterizeImage(wand, (UIntPtr)3, MagickBooleanType.False);
-            MagickWandApi.MagickGetImageChannelMean(wand, ChannelType.AllChannels, ref mean, ref stddev);
-            
-            MagickWandApi.DestroyMagickWand(wand);
-            
-            File.Delete(res.OutputFilename);
-            
-            return mean;
+            using(var wand = new MagickWand(res.OutputFilename))
+            {
+                double mean, stddev;
+                
+                // read the image, posterize, then figure out how 'dark' it is
+                wand.PosterizeImage(3, false);
+                wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
+                
+                File.Delete(res.OutputFilename);
+
+                return mean;
+            }
         }
         
         
@@ -269,13 +232,11 @@ namespace SizePhotos
         
         static DCRawOptions GetOptimalNightOptions()
         {
-            return new DCRawOptions {
-                UseCameraWhiteBalance = true,
-                Quality = InterpolationQuality.Quality3,
-                HighlightMode = HighlightMode.Blend,
-                Colorspace = Colorspace.sRGB,
-                DontAutomaticallyBrighten = true
-            };
+            var opts = GetOptimalDayOptions();
+            
+            opts.DontAutomaticallyBrighten = true;
+            
+            return opts;
         }
     }
 }

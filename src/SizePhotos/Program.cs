@@ -110,7 +110,7 @@ namespace SizePhotos
             PrepareResizeTargets();
             PrepareDirectories();
             PrepareOutputStream();
-            MagickWandApi.MagickWandGenesis();
+            MagickWandEnvironment.Genesis();
             
             if(vpus < 1)
             {
@@ -122,7 +122,7 @@ namespace SizePhotos
 
             Parallel.ForEach(files, opts, ProcessPhoto);
             
-            MagickWandApi.MagickWandTerminus();
+            MagickWandEnvironment.Terminus();
             FinalizeOutputStream();
         }
         
@@ -136,7 +136,7 @@ namespace SizePhotos
 
             var proc = new PhotoProcessor(RawResizeTarget, OriginalResizeTarget, ThumbnailResizeTarget,
                                           FullsizeResizeTarget, FullerResizeTarget);
-            var detail = proc.ProcessPhoto(file).Result;
+            var detail = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
             {
