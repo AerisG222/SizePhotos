@@ -62,15 +62,20 @@ namespace SizePhotos
                     wand.ReadImage(rawPath);
                 }
                 
+                wand.AutoOrientImage();
                 wand.StripImage();
                 wand.ImageCompressionQuality = JPG_COMPRESSION_QUALITY;
-                wand.WriteImage(OriginalTarget.GetLocalPathForPhoto(jpgName), true);
+                
+                using(var tmpWand = wand.Clone())
+                {
+                    tmpWand.WriteImage(OriginalTarget.GetLocalPathForPhoto(jpgName), true);
                     
-                detail.OriginalInfo = new PhotoInfo {
-                    WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
-                    Height = wand.ImageHeight,
-                    Width = wand.ImageWidth
-                };
+                    detail.OriginalInfo = new PhotoInfo {
+                        WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
+                        Height = wand.ImageHeight,
+                        Width = wand.ImageWidth
+                    };
+                }
                 
                 detail.ThumbnailInfo = ScalePhoto(wand, ThumbnailTarget, jpgName);
                 detail.FullsizeInfo = ScalePhoto(wand, FullsizeTarget, jpgName);
