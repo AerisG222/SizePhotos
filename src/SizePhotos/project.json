@@ -18,7 +18,7 @@
         "Commons.GetOptions": "2.0.0",
         "NDCRaw": "0.2.0",
         "NExifTool": "0.2.0",
-        "NMagickWand": "0.3.2"
+        "NMagickWand": "0.3.5"
     },
     "frameworks": {
         "dnx451": { }
