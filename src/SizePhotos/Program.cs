@@ -10,15 +10,19 @@ namespace SizePhotos
 {
     class Program
     {
+        const int JPG_COMPRESSION_QUALITY = 88;
+
+
         readonly object _lockObj = new object();
         StreamWriter _writer;
         bool _hasSetTeaserPhoto;
         SizePhotoOptions _opts;
-        ResizeTarget RawResizeTarget { get; set; }
-        ResizeTarget OriginalResizeTarget { get; set; }
-        ResizeTarget ThumbnailResizeTarget { get; set; }
-        ResizeTarget FullsizeResizeTarget { get; set; }
-        ResizeTarget FullerResizeTarget { get; set; }
+        ProcessingTarget SourceResizeTarget { get; set; }
+        ProcessingTarget XsResizeTarget { get; set; }
+        ProcessingTarget SmResizeTarget { get; set; }
+        ProcessingTarget MdResizeTarget { get; set; }
+        ProcessingTarget LgResizeTarget { get; set; }
+        List<ProcessingTarget> ResizeTargetList { get; } = new List<ProcessingTarget>();
         
         
         public Program(string[] args)
@@ -59,33 +63,37 @@ namespace SizePhotos
         
         void PrepareResizeTargets()
         {
-            RawResizeTarget = GetResizeTarget("raw", 0, 0);
-            OriginalResizeTarget = GetResizeTarget("orig", 0, 0);
-            ThumbnailResizeTarget = GetResizeTarget("thumbnails", 120, 160);
-            FullsizeResizeTarget = GetResizeTarget("fullsize", 480, 640);
-            FullerResizeTarget = GetResizeTarget("fuller", 768, 1024);
+            // original untouched image
+            SourceResizeTarget = GetResizeTarget("src", 0, 0, null);
+            
+            // scale + optimize
+            XsResizeTarget = GetResizeTarget("xs", 120, 160, JPG_COMPRESSION_QUALITY);
+            SmResizeTarget = GetResizeTarget("sm", 480, 640, JPG_COMPRESSION_QUALITY);
+            MdResizeTarget = GetResizeTarget("md", 768, 1024, JPG_COMPRESSION_QUALITY);
+            LgResizeTarget = GetResizeTarget("lg", 0, 0, JPG_COMPRESSION_QUALITY);
         }
         
         
-        ResizeTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth)
+        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, uint? quality)
         {
-            return new ResizeTarget {
+            return new ProcessingTarget {
                 LocalPath = _opts.GetLocalScaledPath(pathSegment),
                 WebPath = _opts.GetWebScaledPath(pathSegment),
                 MaxHeight = maxHeight,
-                MaxWidth = maxWidth
+                MaxWidth = maxWidth,
+                Quality = quality
             };
         }
         
         
         void PrepareDirectories()
         {
-            var targets = new List<ResizeTarget> { 
-                RawResizeTarget,
-                OriginalResizeTarget,
-                ThumbnailResizeTarget,
-                FullsizeResizeTarget,
-                FullerResizeTarget
+            var targets = new List<ProcessingTarget> { 
+                SourceResizeTarget,
+                XsResizeTarget,
+                SmResizeTarget,
+                MdResizeTarget,
+                LgResizeTarget
             };
             
             foreach(var target in targets)
@@ -134,13 +142,12 @@ namespace SizePhotos
                 Console.WriteLine("Processing: " + Path.GetFileName(file));
             }
 
-            var proc = new PhotoProcessor(RawResizeTarget, OriginalResizeTarget, ThumbnailResizeTarget,
-                                          FullsizeResizeTarget, FullerResizeTarget);
-            var detail = proc.ProcessPhotoAsync(file).Result;
+            var proc = new PhotoProcessor(SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget);
+            var result = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
             {
-                AddResultToOutput(detail);
+                AddResultToOutput(result);
             }
         }
         
@@ -159,14 +166,14 @@ namespace SizePhotos
         }
         
         
-        void AddResultToOutput(PhotoDetail detail)
+        void AddResultToOutput(ProcessingResult result)
         {
             string priv = _opts.IsPrivate ? "TRUE" : "FALSE";
 
             if(!_hasSetTeaserPhoto)
             {
                 _writer.WriteLine(string.Concat("INSERT INTO photo_category (name, year, is_private, teaser_photo_width, teaser_photo_height, teaser_photo_path) ",
-                                                "VALUES (", SqlString(_opts.CategoryName), ", ", _opts.Year, ", ", priv, ", ", detail.ThumbnailInfo.Width, ", ", detail.ThumbnailInfo.Height, ", ", SqlString(detail.ThumbnailInfo.WebPath), ");"));
+                                                "VALUES (", SqlString(_opts.CategoryName), ", ", _opts.Year, ", ", priv, ", ", result.Xs.Width, ", ", result.Xs.Height, ", ", SqlString(result.Xs.WebPath), ");"));
 
                 _writer.WriteLine();
                 _writer.WriteLine(@"SELECT @CATEGORY_ID := LAST_INSERT_ID();");
@@ -184,70 +191,70 @@ namespace SizePhotos
                                               + " {60}, {61}, {62}, {63}, {64}, {65});",
                               "@CATEGORY_ID",
                               priv,
-                              detail.ThumbnailInfo.Height,
-                              detail.ThumbnailInfo.Width,
-                              detail.FullsizeInfo.Height,
-                              detail.FullsizeInfo.Width,
-                              detail.OriginalInfo.Height,
-                              detail.OriginalInfo.Width,
-                              detail.FullerInfo.Height,
-                              detail.FullerInfo.Width,
-                              SqlString(detail.ThumbnailInfo.WebPath),
-                              SqlString(detail.FullsizeInfo.WebPath),
-                              SqlString(detail.OriginalInfo.WebPath),
-                              SqlString(detail.FullerInfo.WebPath),
-                              SqlString(detail.RawInfo.WebPath),
-                              SqlString(detail.ExifData.AutofocusPoint),
-                              SqlString(detail.ExifData.Aperture),
-                              SqlString(detail.ExifData.Contrast),
-                              SqlString(detail.ExifData.DepthOfField),
-                              SqlString(detail.ExifData.DigitalZoomRatio),
-                              SqlString(detail.ExifData.ExposureCompensation),
-                              SqlString(detail.ExifData.ExposureDifference),
-                              SqlString(detail.ExifData.ExposureMode),
-                              SqlString(detail.ExifData.ExposureTime),
-                              SqlString(detail.ExifData.FNumber),
-                              SqlString(detail.ExifData.Flash),
-                              SqlString(detail.ExifData.FlashExposureCompensation),
-                              SqlString(detail.ExifData.FlashMode),
-                              SqlString(detail.ExifData.FlashSetting),
-                              SqlString(detail.ExifData.FlashType),
-                              SqlString(detail.ExifData.FocalLength),
-                              SqlString(detail.ExifData.FocalLengthIn35mmFormat),
-                              SqlString(detail.ExifData.FocusDistance),
-                              SqlString(detail.ExifData.FocusMode),
-                              SqlString(detail.ExifData.FocusPosition),
-                              SqlString(detail.ExifData.GainControl),
-                              SqlString(detail.ExifData.HueAdjustment),
-                              SqlString(detail.ExifData.HyperfocalDistance),
-                              SqlString(detail.ExifData.Iso),
-                              SqlString(detail.ExifData.LensId),
-                              SqlString(detail.ExifData.LightSource),
-                              SqlString(detail.ExifData.Make),
-                              SqlString(detail.ExifData.MeteringMode),
-                              SqlString(detail.ExifData.Model),
-                              SqlString(detail.ExifData.NoiseReduction),
-                              SqlString(detail.ExifData.Orientation),
-                              SqlString(detail.ExifData.Saturation),
-                              SqlString(detail.ExifData.ScaleFactor35Efl),
-                              SqlString(detail.ExifData.SceneCaptureType),
-                              SqlString(detail.ExifData.SceneType),
-                              SqlString(detail.ExifData.SensingMethod),
-                              SqlString(detail.ExifData.Sharpness),
-                              SqlString(detail.ExifData.ShutterSpeed),
-                              SqlString(detail.ExifData.WhiteBalance),
-                              SqlString(detail.ExifData.ShotTakenDate),
-                              SqlString(detail.ExifData.ExposureProgram),
-                              SqlString(detail.ExifData.GpsVersionId),
-                              SqlString(detail.ExifData.GpsLatitude),
-                              SqlString(detail.ExifData.GpsLatitudeRef),
-                              SqlString(detail.ExifData.GpsLongitude),
-                              SqlString(detail.ExifData.GpsLongitudeRef),
-                              SqlString(detail.ExifData.GpsAltitude),
-                              SqlString(detail.ExifData.GpsAltitudeRef),
-                              SqlString(detail.ExifData.GpsDateStamp),
-                              SqlString(detail.ExifData.GpsTimeStamp),
-                              SqlString(detail.ExifData.GpsSatellites));
+                              result.Xs.Height,
+                              result.Xs.Width,
+                              result.Sm.Height,
+                              result.Sm.Width,
+                              result.Lg.Height,
+                              result.Lg.Width,
+                              result.Md.Height,
+                              result.Md.Width,
+                              SqlString(result.Xs.WebPath),
+                              SqlString(result.Sm.WebPath),
+                              SqlString(result.Lg.WebPath),
+                              SqlString(result.Md.WebPath),
+                              SqlString(result.Source.WebPath),
+                              SqlString(result.ExifData.AutofocusPoint),
+                              SqlString(result.ExifData.Aperture),
+                              SqlString(result.ExifData.Contrast),
+                              SqlString(result.ExifData.DepthOfField),
+                              SqlString(result.ExifData.DigitalZoomRatio),
+                              SqlString(result.ExifData.ExposureCompensation),
+                              SqlString(result.ExifData.ExposureDifference),
+                              SqlString(result.ExifData.ExposureMode),
+                              SqlString(result.ExifData.ExposureTime),
+                              SqlString(result.ExifData.FNumber),
+                              SqlString(result.ExifData.Flash),
+                              SqlString(result.ExifData.FlashExposureCompensation),
+                              SqlString(result.ExifData.FlashMode),
+                              SqlString(result.ExifData.FlashSetting),
+                              SqlString(result.ExifData.FlashType),
+                              SqlString(result.ExifData.FocalLength),
+                              SqlString(result.ExifData.FocalLengthIn35mmFormat),
+                              SqlString(result.ExifData.FocusDistance),
+                              SqlString(result.ExifData.FocusMode),
+                              SqlString(result.ExifData.FocusPosition),
+                              SqlString(result.ExifData.GainControl),
+                              SqlString(result.ExifData.HueAdjustment),
+                              SqlString(result.ExifData.HyperfocalDistance),
+                              SqlString(result.ExifData.Iso),
+                              SqlString(result.ExifData.LensId),
+                              SqlString(result.ExifData.LightSource),
+                              SqlString(result.ExifData.Make),
+                              SqlString(result.ExifData.MeteringMode),
+                              SqlString(result.ExifData.Model),
+                              SqlString(result.ExifData.NoiseReduction),
+                              SqlString(result.ExifData.Orientation),
+                              SqlString(result.ExifData.Saturation),
+                              SqlString(result.ExifData.ScaleFactor35Efl),
+                              SqlString(result.ExifData.SceneCaptureType),
+                              SqlString(result.ExifData.SceneType),
+                              SqlString(result.ExifData.SensingMethod),
+                              SqlString(result.ExifData.Sharpness),
+                              SqlString(result.ExifData.ShutterSpeed),
+                              SqlString(result.ExifData.WhiteBalance),
+                              SqlString(result.ExifData.ShotTakenDate),
+                              SqlString(result.ExifData.ExposureProgram),
+                              SqlString(result.ExifData.GpsVersionId),
+                              SqlString(result.ExifData.GpsLatitude),
+                              SqlString(result.ExifData.GpsLatitudeRef),
+                              SqlString(result.ExifData.GpsLongitude),
+                              SqlString(result.ExifData.GpsLongitudeRef),
+                              SqlString(result.ExifData.GpsAltitude),
+                              SqlString(result.ExifData.GpsAltitudeRef),
+                              SqlString(result.ExifData.GpsDateStamp),
+                              SqlString(result.ExifData.GpsTimeStamp),
+                              SqlString(result.ExifData.GpsSatellites));
             
             _writer.WriteLine();
         }

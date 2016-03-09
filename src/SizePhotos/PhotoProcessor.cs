@@ -12,81 +12,69 @@ namespace SizePhotos
 {
     public class PhotoProcessor
     {
-        const int JPG_COMPRESSION_QUALITY = 72;
         const double DARK_THRESHOLD = 250;
         
         
-        ResizeTarget RawTarget { get; set; }
-        ResizeTarget OriginalTarget { get; set; }
-        ResizeTarget ThumbnailTarget { get; set; }
-        ResizeTarget FullsizeTarget { get; set; }
-        ResizeTarget FullerTarget { get; set; }
+        ProcessingTarget SourceTarget { get; set; }
+        ProcessingTarget XsTarget { get; set; }
+        ProcessingTarget SmTarget { get; set; }
+        ProcessingTarget MdTarget { get; set; }
+        ProcessingTarget LgTarget { get; set; }
         
         
-        public PhotoProcessor(ResizeTarget rawTarget, ResizeTarget originalTarget, ResizeTarget thumbnailTarget, 
-                              ResizeTarget fullsizeTarget, ResizeTarget fullerTarget)
+        public PhotoProcessor(ProcessingTarget sourceTarget, ProcessingTarget xsTarget, ProcessingTarget smTarget, 
+                              ProcessingTarget mdTarget, ProcessingTarget lgTarget)
         {
-            RawTarget = rawTarget;
-            OriginalTarget = originalTarget;
-            ThumbnailTarget = thumbnailTarget;
-            FullsizeTarget = fullsizeTarget;
-            FullerTarget = fullerTarget;
+            SourceTarget = sourceTarget;
+            XsTarget = xsTarget;
+            SmTarget = smTarget;
+            MdTarget = mdTarget;
+            LgTarget = lgTarget;
         }
         
         
-        public async Task<PhotoDetail> ProcessPhotoAsync(string photoPath)
+        public async Task<ProcessingResult> ProcessPhotoAsync(string photoPath)
         {
-            var detail = new PhotoDetail();
+            var result = new ProcessingResult();
             var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
-            var rawPath = RawTarget.GetLocalPathForPhoto(photoPath);
+            var srcPath = SourceTarget.GetLocalPathForPhoto(photoPath);
             string ppmFile = null;
             
-            detail.ExifData = await ReadExifData(photoPath);
+            result.ExifData = await ReadExifData(photoPath);
             
-            // always keep the original in the raw dir
-            File.Move(photoPath, rawPath);
-            detail.RawInfo = new PhotoInfo { WebPath = RawTarget.GetWebPathForPhoto(photoPath) };
+            // always keep the original in the source dir
+            File.Move(photoPath, srcPath);
+            result.Source = new ProcessedPhoto { Target = SourceTarget, Filename = Path.GetFileName(photoPath) };
             
             using(var wand = new MagickWand())
             {
                 if(IsRawFile(photoPath))
                 {
-                    var dcraw = new DCRaw(GetOptimalOptionsForPhoto(rawPath));
-                    ppmFile = (await dcraw.ConvertAsync(rawPath)).OutputFilename;
+                    var dcraw = new DCRaw(GetOptimalOptionsForPhoto(srcPath));
+                    ppmFile = (await dcraw.ConvertAsync(srcPath)).OutputFilename;
                     
                     wand.ReadImage(ppmFile);
                     File.Delete(ppmFile);
                 } 
                 else 
                 {
-                    wand.ReadImage(rawPath);
+                    wand.ReadImage(srcPath);
                 }
                 
                 wand.AutoOrientImage();
                 wand.StripImage();
-                wand.ImageCompressionQuality = JPG_COMPRESSION_QUALITY;
                 
-                using(var tmpWand = wand.Clone())
-                {
-                    tmpWand.WriteImage(OriginalTarget.GetLocalPathForPhoto(jpgName), true);
-                    
-                    detail.OriginalInfo = new PhotoInfo {
-                        WebPath = OriginalTarget.GetWebPathForPhoto(jpgName),
-                        Height = wand.ImageHeight,
-                        Width = wand.ImageWidth
-                    };
-                }
-                
-                detail.ThumbnailInfo = ScalePhoto(wand, ThumbnailTarget, jpgName);
-                detail.FullsizeInfo = ScalePhoto(wand, FullsizeTarget, jpgName);
-                detail.FullerInfo = ScalePhoto(wand, FullerTarget, jpgName);
+                result.Xs = ProcessTarget(wand, XsTarget, jpgName);
+                result.Sm = ProcessTarget(wand, SmTarget, jpgName);
+                result.Md = ProcessTarget(wand, MdTarget, jpgName);
+                result.Lg = ProcessTarget(wand, LgTarget, jpgName);
             }
             
-            return detail;
+            return result;
         }
         
         
-        static PhotoInfo ScalePhoto(MagickWand wand, ResizeTarget target, string jpgName)
+        static ProcessedPhoto ProcessTarget(MagickWand wand, ProcessingTarget target, string jpgName)
         {
             using(var tmpWand = wand.Clone())
             {
@@ -95,13 +83,24 @@ namespace SizePhotos
                 
                 wand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
                 
-                // TODO: might need to adjust compression quality based on scaling amount
+                if(target.Optimize)
+                {
+                    tmpWand.NormalizeImage();
+                }
+                
                 tmpWand.ScaleImage(width, height);
+                
+                if(target.Quality != null)
+                {
+                    tmpWand.ImageCompressionQuality = (uint)target.Quality;
+                }
+                
                 tmpWand.WriteImage(path, true);
                 
-                return new PhotoInfo
+                return new ProcessedPhoto
                 {
-                    WebPath = target.GetWebPathForPhoto(jpgName),
+                    Target = target,
+                    Filename = jpgName,
                     Width = width,
                     Height = height
                 };

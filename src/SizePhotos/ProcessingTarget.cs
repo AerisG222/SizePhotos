@@ -4,8 +4,10 @@ using System.IO;
 
 namespace SizePhotos
 {
-    public class ResizeTarget
+    public class ProcessingTarget
     {
+        public uint? Quality { get; set; }
+        public bool Optimize { get; set; }
         public string LocalPath { get; set; }
         public string WebPath { get; set; }
         public uint MaxHeight { get; set; }
