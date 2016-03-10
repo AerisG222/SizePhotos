@@ -6,7 +6,6 @@ namespace SizePhotos
 {
     public class ProcessingResult
     {
-        public bool IsPrivate { get; set; }
         public ExifData ExifData { get; set; }
         public ProcessedPhoto Source { get; set; }
         public ProcessedPhoto Xs { get; set; }

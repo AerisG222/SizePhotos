@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NMagickWand;
+using SizePhotos.ResultWriters;
 
 
 namespace SizePhotos
@@ -14,9 +15,9 @@ namespace SizePhotos
 
 
         readonly object _lockObj = new object();
-        StreamWriter _writer;
-        bool _hasSetTeaserPhoto;
+        readonly CategoryInfo _category;
         SizePhotoOptions _opts;
+        IResultWriter _writer;
         ProcessingTarget SourceResizeTarget { get; set; }
         ProcessingTarget XsResizeTarget { get; set; }
         ProcessingTarget SmResizeTarget { get; set; }
@@ -29,6 +30,15 @@ namespace SizePhotos
         {
             _opts = new SizePhotoOptions(args);
             _opts.ProcessArgs(args, null);
+            
+            _category = new CategoryInfo {
+                Name = _opts.CategoryName,
+                Year = _opts.Year,
+                IsPrivate = _opts.IsPrivate
+            };
+            
+            // TODO: make the writer dynamic based on opts
+            _writer = new SqlInsertWriter(_opts.Outfile);
         }
         
         
@@ -117,7 +127,7 @@ namespace SizePhotos
 
             PrepareResizeTargets();
             PrepareDirectories();
-            PrepareOutputStream();
+            _writer.PreProcess(_category);
             MagickWandEnvironment.Genesis();
             
             if(vpus < 1)
@@ -131,7 +141,7 @@ namespace SizePhotos
             Parallel.ForEach(files, opts, ProcessPhoto);
             
             MagickWandEnvironment.Terminus();
-            FinalizeOutputStream();
+            _writer.PostProcess();
         }
         
         
@@ -147,128 +157,7 @@ namespace SizePhotos
 
             lock(_lockObj)
             {
-                AddResultToOutput(result);
-            }
-        }
-        
-        
-        void PrepareOutputStream()
-        {
-            _writer = new StreamWriter(new FileStream(_opts.Outfile, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
-        }
-        
-        
-        void FinalizeOutputStream()
-        {
-            _writer.Flush();
-            _writer.Close();
-            _writer = null;
-        }
-        
-        
-        void AddResultToOutput(ProcessingResult result)
-        {
-            string priv = _opts.IsPrivate ? "TRUE" : "FALSE";
-
-            if(!_hasSetTeaserPhoto)
-            {
-                _writer.WriteLine(string.Concat("INSERT INTO photo_category (name, year, is_private, teaser_photo_width, teaser_photo_height, teaser_photo_path) ",
-                                                "VALUES (", SqlString(_opts.CategoryName), ", ", _opts.Year, ", ", priv, ", ", result.Xs.Width, ", ", result.Xs.Height, ", ", SqlString(result.Xs.WebPath), ");"));
-
-                _writer.WriteLine();
-                _writer.WriteLine(@"SELECT @CATEGORY_ID := LAST_INSERT_ID();");
-                _writer.WriteLine();
-
-                _hasSetTeaserPhoto = true;
-            }
-
-            _writer.WriteLine("CALL maw_add_photo({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},"
-                                              + " {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},"
-                                              + " {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},"
-                                              + " {30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},"
-                                              + " {40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},"
-                                              + " {50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},"
-                                              + " {60}, {61}, {62}, {63}, {64}, {65});",
-                              "@CATEGORY_ID",
-                              priv,
-                              result.Xs.Height,
-                              result.Xs.Width,
-                              result.Sm.Height,
-                              result.Sm.Width,
-                              result.Lg.Height,
-                              result.Lg.Width,
-                              result.Md.Height,
-                              result.Md.Width,
-                              SqlString(result.Xs.WebPath),
-                              SqlString(result.Sm.WebPath),
-                              SqlString(result.Lg.WebPath),
-                              SqlString(result.Md.WebPath),
-                              SqlString(result.Source.WebPath),
-                              SqlString(result.ExifData.AutofocusPoint),
-                              SqlString(result.ExifData.Aperture),
-                              SqlString(result.ExifData.Contrast),
-                              SqlString(result.ExifData.DepthOfField),
-                              SqlString(result.ExifData.DigitalZoomRatio),
-                              SqlString(result.ExifData.ExposureCompensation),
-                              SqlString(result.ExifData.ExposureDifference),
-                              SqlString(result.ExifData.ExposureMode),
-                              SqlString(result.ExifData.ExposureTime),
-                              SqlString(result.ExifData.FNumber),
-                              SqlString(result.ExifData.Flash),
-                              SqlString(result.ExifData.FlashExposureCompensation),
-                              SqlString(result.ExifData.FlashMode),
-                              SqlString(result.ExifData.FlashSetting),
-                              SqlString(result.ExifData.FlashType),
-                              SqlString(result.ExifData.FocalLength),
-                              SqlString(result.ExifData.FocalLengthIn35mmFormat),
-                              SqlString(result.ExifData.FocusDistance),
-                              SqlString(result.ExifData.FocusMode),
-                              SqlString(result.ExifData.FocusPosition),
-                              SqlString(result.ExifData.GainControl),
-                              SqlString(result.ExifData.HueAdjustment),
-                              SqlString(result.ExifData.HyperfocalDistance),
-                              SqlString(result.ExifData.Iso),
-                              SqlString(result.ExifData.LensId),
-                              SqlString(result.ExifData.LightSource),
-                              SqlString(result.ExifData.Make),
-                              SqlString(result.ExifData.MeteringMode),
-                              SqlString(result.ExifData.Model),
-                              SqlString(result.ExifData.NoiseReduction),
-                              SqlString(result.ExifData.Orientation),
-                              SqlString(result.ExifData.Saturation),
-                              SqlString(result.ExifData.ScaleFactor35Efl),
-                              SqlString(result.ExifData.SceneCaptureType),
-                              SqlString(result.ExifData.SceneType),
-                              SqlString(result.ExifData.SensingMethod),
-                              SqlString(result.ExifData.Sharpness),
-                              SqlString(result.ExifData.ShutterSpeed),
-                              SqlString(result.ExifData.WhiteBalance),
-                              SqlString(result.ExifData.ShotTakenDate),
-                              SqlString(result.ExifData.ExposureProgram),
-                              SqlString(result.ExifData.GpsVersionId),
-                              SqlString(result.ExifData.GpsLatitude),
-                              SqlString(result.ExifData.GpsLatitudeRef),
-                              SqlString(result.ExifData.GpsLongitude),
-                              SqlString(result.ExifData.GpsLongitudeRef),
-                              SqlString(result.ExifData.GpsAltitude),
-                              SqlString(result.ExifData.GpsAltitudeRef),
-                              SqlString(result.ExifData.GpsDateStamp),
-                              SqlString(result.ExifData.GpsTimeStamp),
-                              SqlString(result.ExifData.GpsSatellites));
-            
-            _writer.WriteLine();
-        }
-        
-        
-        static string SqlString(string val)
-        {
-            if(val == null)
-            {
-                return "NULL";
-            }
-            else
-            {
-                return string.Concat("'", val.Replace("'", "''"), "'");
+                _writer.Write(result);
             }
         }
         
