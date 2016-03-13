@@ -16,8 +16,8 @@
     },
     "dependencies": {
         "Commons.GetOptions": "2.0.0",
-        "NDCRaw": "0.2.0",
-        "NExifTool": "0.2.0",
+        "NDCRaw": "0.2.1",
+        "NExifTool": "0.2.1",
         "NMagickWand": "0.3.5"
     },
     "frameworks": {
