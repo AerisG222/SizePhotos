@@ -158,7 +158,6 @@ namespace SizePhotos
                 AutofocusPoint = GetExifData(tags, "AFPoint"),
                 AutoFocusAreaMode = "AFAreaMode",
                 ActiveDLighting = "ActiveD-Lighting",
-                Brightness = "Brightness",
                 Colorspace = "ColorSpace",
                 ExposureDifference = GetExifData(tags, "ExposureDifference"),
                 FlashColorFilter = "FlashColorFilter",
