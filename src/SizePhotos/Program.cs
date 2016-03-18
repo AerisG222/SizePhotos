@@ -152,7 +152,7 @@ namespace SizePhotos
                 Console.WriteLine("Processing: " + Path.GetFileName(file));
             }
 
-            var proc = new PhotoProcessor(SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget);
+            var proc = new PhotoProcessor(SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget, _opts.Quiet);
             var result = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
