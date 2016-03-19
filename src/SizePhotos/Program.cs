@@ -157,7 +157,7 @@ namespace SizePhotos
 
             lock(_lockObj)
             {
-                _writer.Write(result);
+                _writer.AddResult(result);
             }
         }
         

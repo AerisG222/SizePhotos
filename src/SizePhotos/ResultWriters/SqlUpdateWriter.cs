@@ -125,9 +125,9 @@ namespace SizePhotos.ResultWriters
         }
         
         
-        public void Write(ProcessingResult result)
+        public void AddResult(ProcessingResult result)
         {
-            AddResultToOutput(result);
+            _results.Add(result);
         }
         
         
@@ -152,12 +152,6 @@ namespace SizePhotos.ResultWriters
             _writer.Flush();
             _writer.Close();
             _writer = null;
-        }
-        
-        
-        void AddResultToOutput(ProcessingResult result)
-        {
-            _results.Add(result);
         }
         
         

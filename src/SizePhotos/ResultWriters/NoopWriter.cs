@@ -16,7 +16,7 @@ namespace SizePhotos.ResultWriters
         }
         
         
-        public void Write(ProcessingResult result)
+        public void AddResult(ProcessingResult result)
         {
             
         }
