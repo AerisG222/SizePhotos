@@ -38,7 +38,7 @@ namespace SizePhotos
             };
             
             // TODO: make the writer dynamic based on opts
-            _writer = new SqlInsertWriter(_opts.Outfile);
+            _writer = new SqlUpdateWriter(_opts.Outfile);
         }
         
         
