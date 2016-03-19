@@ -164,7 +164,6 @@ namespace SizePhotos
         
         static void ShowUsage(SizePhotoOptions options)
         {
-            Console.WriteLine(options.CategoryName);
             options.DoHelp();
         }
     }

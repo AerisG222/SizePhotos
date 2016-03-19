@@ -39,7 +39,7 @@ namespace SizePhotos
         public int? MeteringMode { get; set; }
         public string Model { get; set; }
         public int? Orientation { get; set; }
-        public int? Saturation { get; set; }
+        public string Saturation { get; set; }
         public int? SceneCaptureType { get; set; }
         public int? SceneType { get; set; }
         public int? SensingMethod { get; set; }
@@ -55,7 +55,7 @@ namespace SizePhotos
         public double? ExposureDifference { get; set; }
         public string FlashColorFilter { get; set; }
         public string FlashCompensation { get; set; }
-        public string FlashControlMode { get; set; }
+        public short? FlashControlMode { get; set; }
         public string FlashExposureCompensation { get; set; }
         public double? FlashFocalLength { get; set; }
         public string FlashMode { get; set; }
@@ -64,7 +64,7 @@ namespace SizePhotos
         public string FlashType { get; set; }
         public double? FocusDistance { get; set; }
         public string FocusMode { get; set; }
-        public string FocusPosition { get; set; }
+        public int? FocusPosition { get; set; }
         public string HighIsoNoiseReduction { get; set; }
         public string HueAdjustment { get; set; }
         public string NoiseReduction { get; set; }

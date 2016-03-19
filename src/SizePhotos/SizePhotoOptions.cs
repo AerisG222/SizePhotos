@@ -9,6 +9,7 @@ namespace SizePhotos
         : Options
     {
         string _webPhotoRootPath;
+        string _categorySegment;
         string _localPhotoRootPath;
         
         
@@ -40,9 +41,8 @@ namespace SizePhotos
                 
                 if(!string.IsNullOrEmpty(value))
                 {
-                    string[] dirComponents = Path.GetDirectoryName(value).Split(Path.DirectorySeparatorChar);
-                    string dir = dirComponents[dirComponents.Length - 1];
-                    
+                    string[] dirComponents = value.Split(Path.DirectorySeparatorChar);
+
                     CategoryDirectorySegment = dirComponents[dirComponents.Length - 1];
                 }
             } 
@@ -58,25 +58,13 @@ namespace SizePhotos
             } 
             set
             {
-                if(string.IsNullOrEmpty(value))
+                if(string.IsNullOrWhiteSpace(value))
                 {
                     _webPhotoRootPath = string.Empty;
                     return;
                 }
                 
-                value = value.Trim();
-                
-                while(value.StartsWith("/"))
-                {
-                    value = value.Substring(1);
-                }
-                
-                while(value.EndsWith("/"))
-                {
-                    value = value.Substring(0, value.LastIndexOf('/'));
-                }
-                
-                _webPhotoRootPath = value;
+                _webPhotoRootPath = TrimPathSeparators(value);
             } 
         }
         
@@ -93,7 +81,23 @@ namespace SizePhotos
         public bool Quiet { get; set; }
         
         
-        string CategoryDirectorySegment { get; set; }
+        string CategoryDirectorySegment 
+        { 
+            get
+            {
+                return _categorySegment;
+            } 
+            set
+            {
+                if(string.IsNullOrWhiteSpace(value))
+                {
+                    _categorySegment = string.Empty;
+                    return;
+                }
+                
+                _categorySegment = TrimPathSeparators(value);
+            } 
+        }
         
         
         public bool ValidateOptions()
@@ -129,6 +133,24 @@ namespace SizePhotos
         public string GetWebScaledPath(string scaledPathSegment)
         {
             return $"{WebCategoryPath}{scaledPathSegment}/";
+        }
+        
+        
+        string TrimPathSeparators(string val)
+        {
+            val = val.Trim();
+                
+            while(val.StartsWith("/"))
+            {
+                val = val.Substring(1);
+            }
+            
+            while(val.EndsWith("/"))
+            {
+                val = val.Substring(0, val.LastIndexOf('/'));
+            }
+            
+            return val;
         }
     }
 }
