@@ -163,33 +163,6 @@ namespace SizePhotos
                 Sharpness = GetExifData<Sharpness>(tags, "Sharpness")?.TypedValue.Key,
                 
                 // nikon
-<<<<<<< 4be1807ff2858834f315a6109f94f051e92c4d03
-                AutofocusPoint = GetExifData(tags, "AFPoint"),
-                AutoFocusAreaMode = "AFAreaMode",
-                ActiveDLighting = "ActiveD-Lighting",
-                Colorspace = "ColorSpace",
-                ExposureDifference = GetExifData(tags, "ExposureDifference"),
-                FlashColorFilter = "FlashColorFilter",
-                FlashCompensation = "FlashCompensation",
-                FlashExposureCompensation = GetExifData(tags, "FlashExposureComp"),
-                FlashMode = GetExifData(tags, "FlashMode"),
-                FlashSetting = GetExifData(tags, "FlashSetting"),
-                FlashSource = "FlashSource",
-                FlashType = GetExifData(tags, "FlashType"),
-                FocusDistance = GetExifData(tags, "FocusDistance"),
-                FocusMode = GetExifData(tags, "FocusMode"),
-                FocusPosition = GetExifData(tags, "FocusPosition"),
-                HighIsoNoiseReduction = "HighIsoNoiseReduction",
-                HueAdjustment = GetExifData(tags, "HueAdjustment"),
-                NoiseReduction = GetExifData(tags, "NoiseReduction"),
-                PictureControlName = "PictureControlName",
-                PrimaryAFPoint = "PrimaryAFPoint",
-                Saturation = GetExifData(tags, "Saturation"),
-                VRMode = "VRMode",
-                VibrationReduction = "VibrationReduction",
-                VignetteControl = "VignetteControl",
-                WhiteBalance = GetExifData(tags, "WhiteBalance"),
-=======
                 AutoFocusAreaMode = GetExifData(tags, "AFAreaMode")?.Value,
                 AutoFocusPoint = GetExifData(tags, "AFPoint")?.Value,
                 ActiveDLighting = GetExifData(tags, "ActiveD-Lighting")?.Value,
@@ -216,7 +189,6 @@ namespace SizePhotos
                 VibrationReduction = GetExifData(tags, "VibrationReduction")?.Value,
                 VignetteControl = GetExifData(tags, "VignetteControl")?.Value,
                 WhiteBalance = GetExifData(tags, "WhiteBalance")?.Value,
->>>>>>> more updates to start refining the exif data we collect
                 
                 // composite
                 Aperture = GetExifData<double>(tags, "Aperture")?.TypedValue,
