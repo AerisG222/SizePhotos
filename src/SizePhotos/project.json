@@ -6,7 +6,7 @@
     "summary": "Tool to prepare photos for a website",
     "description": "Tool to prepare photos for my website",
     "tags": [ "photography", "photo", "resize", "scale", "raw", "exif" ],
-    "version": "0.1.1",
+    "version": "0.2.0",
     "compilationOptions": {
         "emitEntryPoint": true,
         "warningsAsErrors": true
