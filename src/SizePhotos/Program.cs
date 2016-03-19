@@ -29,7 +29,16 @@ namespace SizePhotos
         public Program(string[] args)
         {
             _opts = new SizePhotoOptions(args);
-            _opts.ProcessArgs(args, null);
+            
+            try
+            {
+                _opts.ProcessArgs(args, null);
+            }
+            catch (System.Exception)
+            {
+                ShowUsage(_opts, null);
+                Environment.Exit(1);
+            }
             
             _category = new CategoryInfo {
                 Name = _opts.CategoryName,
@@ -37,8 +46,18 @@ namespace SizePhotos
                 IsPrivate = _opts.IsPrivate
             };
             
-            // TODO: make the writer dynamic based on opts
-            _writer = new SqlUpdateWriter(_opts.Outfile);
+            if(_opts.InsertMode)
+            {
+                _writer = new SqlInsertWriter(_opts.Outfile);
+            }
+            else if(_opts.UpdateMode)
+            {
+                _writer = new SqlUpdateWriter(_opts.Outfile);
+            }
+            else
+            {
+                _writer = new NoopWriter();
+            }
         }
         
         
@@ -51,9 +70,11 @@ namespace SizePhotos
                               
         void Run()
         {
-            if(!_opts.ValidateOptions())
+            var errors = _opts.ValidateOptions().ToList();
+            
+            if(errors.Count > 0)
             {
-                ShowUsage(_opts);
+                ShowUsage(_opts, errors);
                 Environment.Exit(1);
             }
             
@@ -162,9 +183,20 @@ namespace SizePhotos
         }
         
         
-        static void ShowUsage(SizePhotoOptions options)
+        static void ShowUsage(SizePhotoOptions options, IList<string> errors)
         {
             options.DoHelp();
+            
+            if(errors != null)
+            {
+                Console.WriteLine();
+                Console.WriteLine("The following errors were encountered:");
+            
+                foreach(var err in errors)
+                {
+                    Console.WriteLine(err);
+                }
+            }
         }
     }
 }

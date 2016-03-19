@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Commons.GetOptions;
 
@@ -8,9 +9,9 @@ namespace SizePhotos
     public class SizePhotoOptions 
         : Options
     {
-        string _webPhotoRootPath;
-        string _categorySegment;
-        string _localPhotoRootPath;
+        string _webPhotoRootPath = string.Empty;
+        string _categorySegment = string.Empty;
+        string _localPhotoRootPath = string.Empty;
         
         
         public SizePhotoOptions(string[] args)
@@ -81,6 +82,18 @@ namespace SizePhotos
         public bool Quiet { get; set; }
         
         
+        [Option("Generate an insert script [default]", ShortForm = 'i', Name = "sql-insert-mode")]
+        public bool InsertMode { get; set; }
+        
+        
+        [Option("Generate an update script (based on lg filepath)", ShortForm = 'u', Name = "sql-update-mode")]
+        public bool UpdateMode { get; set; }
+        
+        
+        [Option("Do not generate an output file, useful when reprocessing", ShortForm = 'n', Name = "no-output-mode")]
+        public bool NoOutputMode { get; set; }
+        
+        
         string CategoryDirectorySegment 
         { 
             get
@@ -100,18 +113,45 @@ namespace SizePhotos
         }
         
         
-        public bool ValidateOptions()
+        public IEnumerable<string> ValidateOptions()
         {
-            if(WebPhotoRootPath == null ||
-               string.IsNullOrEmpty(Outfile) ||
-               string.IsNullOrEmpty(LocalPhotoRoot) ||
-               string.IsNullOrEmpty(CategoryName) ||
-               Year == 0)
+            if(string.IsNullOrWhiteSpace(LocalPhotoRoot))
             {
-                return false;
+                yield return "Please specify the local path containing the photos to process";
             }
             
-            return true;
+            var counter = 0;
+            
+            counter += InsertMode ? 1 : 0;
+            counter += UpdateMode ? 1 : 0;
+            counter += NoOutputMode ? 1 : 0;
+            
+            if(counter != 1)
+            {
+                yield return "Please select one and only one output mode (insert, update, or no output)";
+            }
+            else
+            {
+                if((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(WebPhotoRootPath))
+                {
+                    yield return "Please specify the web root path";
+                }
+                
+                if((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(Outfile))
+                {
+                    yield return "Please provide the name of the output file to write to";
+                }
+                
+                if(InsertMode && string.IsNullOrWhiteSpace(CategoryName))
+                {
+                    yield return "Please provide a category name, as it is required for insert mode";
+                }
+                
+                if(InsertMode && Year == 0)
+                {
+                    yield return "Please provide a year, as it is required for insert mode";
+                }
+            }
         }
 
         
