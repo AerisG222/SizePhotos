@@ -95,24 +95,25 @@ namespace SizePhotos
         void PrepareResizeTargets()
         {
             // original untouched image
-            SourceResizeTarget = GetResizeTarget("src", 0, 0, null);
+            SourceResizeTarget = GetResizeTarget("src", 0, 0, false, null);
             
             // scale + optimize
-            XsResizeTarget = GetResizeTarget("xs", 120, 160, JPG_COMPRESSION_QUALITY);
-            SmResizeTarget = GetResizeTarget("sm", 480, 640, JPG_COMPRESSION_QUALITY);
-            MdResizeTarget = GetResizeTarget("md", 768, 1024, JPG_COMPRESSION_QUALITY);
-            LgResizeTarget = GetResizeTarget("lg", 0, 0, JPG_COMPRESSION_QUALITY);
+            XsResizeTarget = GetResizeTarget("xs", 120, 160, true, JPG_COMPRESSION_QUALITY);
+            SmResizeTarget = GetResizeTarget("sm", 480, 640, true, JPG_COMPRESSION_QUALITY);
+            MdResizeTarget = GetResizeTarget("md", 768, 1024, true, JPG_COMPRESSION_QUALITY);
+            LgResizeTarget = GetResizeTarget("lg", 0, 0, true, JPG_COMPRESSION_QUALITY);
         }
         
         
-        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, uint? quality)
+        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize, uint? quality)
         {
             return new ProcessingTarget {
                 LocalPath = _opts.GetLocalScaledPath(pathSegment),
                 WebPath = _opts.GetWebScaledPath(pathSegment),
                 MaxHeight = maxHeight,
                 MaxWidth = maxWidth,
-                Quality = quality
+                Quality = quality,
+                Optimize = optimize
             };
         }
         
