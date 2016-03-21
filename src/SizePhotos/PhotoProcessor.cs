@@ -17,6 +17,7 @@ namespace SizePhotos
     {
         const double DARK_THRESHOLD = 250;
         const string DATE_FORMAT = "yyyy:MM:dd HH:mm:ss";
+        static readonly object _lockobj = new object();
         static readonly string[] PREFERRED_SPECIFIC_GROUP_PREFIXES = new string[] { "IFD", "SubIFD1", "SubIFD0", "SubIFD" };
         
         
@@ -92,11 +93,12 @@ namespace SizePhotos
                 
                 if(target.Optimize)
                 {
-                    tmpWand.NormalizeImage();
+                    tmpWand.SigmoidalContrastImage(true, 2, 0);
                 }
                 
                 tmpWand.ScaleImage(width, height);
-                
+                tmpWand.UnsharpMaskImage(0, 0.75, 0.75, 0.008);
+
                 if(target.Quality != null)
                 {
                     tmpWand.ImageCompressionQuality = (uint)target.Quality;
