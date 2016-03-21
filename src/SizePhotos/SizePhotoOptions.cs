@@ -113,6 +113,20 @@ namespace SizePhotos
         }
         
         
+        public new void ProcessArgs(string[] args, Func<int, string[]> exitFunc)
+        {
+            base.ProcessArgs(args, null);
+            
+            // when updating, the expectation is that the directory will match the expected path name convention
+            // as such, determine the year based on the localpath (this is necessary to generate proper webpaths in sql)
+            if(UpdateMode && Year == 0)
+            {
+                var parts = LocalPhotoRoot.Split(Path.DirectorySeparatorChar);
+                Year = ushort.Parse(parts[parts.Length - 2]);
+            }
+        }
+        
+        
         public IEnumerable<string> ValidateOptions()
         {
             if(string.IsNullOrWhiteSpace(LocalPhotoRoot))

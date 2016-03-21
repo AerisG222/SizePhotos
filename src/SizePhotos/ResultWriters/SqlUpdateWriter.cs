@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 
 namespace SizePhotos.ResultWriters
@@ -181,6 +180,8 @@ namespace SizePhotos.ResultWriters
             
             foreach(var result in _results)
             {
+                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {result.Xs.Width}, teaser_photo_height = {result.Xs.Height}, teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebPath)} WHERE teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebPath)};"); 
+                
                 var args = new string[] {
                     // scaled images
                     result.Xs.Height.ToString(),
