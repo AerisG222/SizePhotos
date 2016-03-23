@@ -12,11 +12,19 @@ namespace SizePhotos
         
         ushort Year { get; set; }
         
+        string[] LocalRootSegments
+        {
+            get
+            {
+                return LocalRoot.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            }
+        }
+        
         string CategorySegment 
         { 
             get
             {
-                var parts = LocalRoot.Split(Path.DirectorySeparatorChar);
+                var parts = LocalRootSegments;
                 
                 if(parts.Length > 0)
                 {
@@ -94,7 +102,7 @@ namespace SizePhotos
         
         void InferYear()
         {
-            var segments = LocalRoot.Split(Path.DirectorySeparatorChar);
+            var segments = LocalRootSegments;
             
             if(segments.Length >= 2) 
             {
@@ -106,7 +114,7 @@ namespace SizePhotos
                 }
                 else
                 {
-                    throw new InvalidDataException("unable to infer year: year path segment is not a valid year (in yyyy) format: " + LocalRoot);
+                    throw new InvalidDataException("unable to infer year: year path segment is not a valid year (in yyyy) format.  path: " + LocalRoot);
                 }
             }
             else
@@ -116,21 +124,15 @@ namespace SizePhotos
         }
         
         
+        string[] LocalPathParts()
+        {
+            return LocalRoot.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        }
+        
+        
         string TrimWebPathSeparators(string val)
         {
-            val = val.Trim();
-                
-            while(val.StartsWith("/"))
-            {
-                val = val.Substring(1);
-            }
-            
-            while(val.EndsWith("/"))
-            {
-                val = val.Substring(0, val.LastIndexOf('/'));
-            }
-            
-            return val;
+            return string.Join("/", val.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries));
         }
     }
 }
