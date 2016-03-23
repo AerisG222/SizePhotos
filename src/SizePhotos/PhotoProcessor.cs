@@ -21,6 +21,7 @@ namespace SizePhotos
         static readonly string[] PREFERRED_SPECIFIC_GROUP_PREFIXES = new string[] { "IFD", "SubIFD1", "SubIFD0", "SubIFD" };
         
         
+        PhotoPathHelper PathHelper { get; set; }
         ProcessingTarget SourceTarget { get; set; }
         ProcessingTarget XsTarget { get; set; }
         ProcessingTarget SmTarget { get; set; }
@@ -29,9 +30,10 @@ namespace SizePhotos
         bool Quiet { get; set; }
         
         
-        public PhotoProcessor(ProcessingTarget sourceTarget, ProcessingTarget xsTarget, ProcessingTarget smTarget, 
-                              ProcessingTarget mdTarget, ProcessingTarget lgTarget, bool quiet)
+        public PhotoProcessor(PhotoPathHelper pathHelper, ProcessingTarget sourceTarget, ProcessingTarget xsTarget,  
+                              ProcessingTarget smTarget, ProcessingTarget mdTarget, ProcessingTarget lgTarget, bool quiet)
         {
+            PathHelper = pathHelper;
             SourceTarget = sourceTarget;
             XsTarget = xsTarget;
             SmTarget = smTarget;
@@ -41,22 +43,27 @@ namespace SizePhotos
         }
         
         
-        public async Task<ProcessingResult> ProcessPhotoAsync(string photoPath)
+        public async Task<ProcessingResult> ProcessPhotoAsync(string filename)
         {
             var result = new ProcessingResult();
-            var jpgName = $"{Path.GetFileNameWithoutExtension(photoPath)}.jpg";
-            var srcPath = SourceTarget.GetLocalPathForPhoto(photoPath);
+            var jpgName = Path.ChangeExtension(filename, ".jpg");
+            var origPath = PathHelper.GetSourceFilePath(filename);
+            var srcPath = PathHelper.GetScaledLocalPath(SourceTarget.ScaledPathSegment, filename);
             string ppmFile = null;
             
-            result.ExifData = await ReadExifData(photoPath);
+            result.ExifData = await ReadExifData(origPath);
             
             // always keep the original in the source dir
-            File.Move(photoPath, srcPath);
-            result.Source = new ProcessedPhoto { Target = SourceTarget, Filename = Path.GetFileName(photoPath) };
+            File.Move(origPath, srcPath);
+            result.Source = new ProcessedPhoto { 
+                Target = SourceTarget, 
+                LocalFilePath = srcPath, 
+                WebFilePath = PathHelper.GetScaledWebFilePath(SourceTarget.ScaledPathSegment, filename)
+            };
             
             using(var wand = new MagickWand())
             {
-                if(IsRawFile(photoPath))
+                if(IsRawFile(filename))
                 {
                     var dcraw = new DCRaw(GetOptimalOptionsForPhoto(srcPath));
                     ppmFile = (await dcraw.ConvertAsync(srcPath)).OutputFilename;
@@ -82,11 +89,11 @@ namespace SizePhotos
         }
         
         
-        static ProcessedPhoto ProcessTarget(MagickWand wand, ProcessingTarget target, string jpgName)
+        ProcessedPhoto ProcessTarget(MagickWand wand, ProcessingTarget target, string jpgName)
         {
             using(var tmpWand = wand.Clone())
             {
-                var path = target.GetLocalPathForPhoto(jpgName);
+                var path = PathHelper.GetScaledLocalPath(target.ScaledPathSegment, jpgName);
                 uint width, height;
                 
                 wand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
@@ -109,7 +116,8 @@ namespace SizePhotos
                 return new ProcessedPhoto
                 {
                     Target = target,
-                    Filename = jpgName,
+                    LocalFilePath = jpgName, 
+                    WebFilePath = PathHelper.GetScaledWebFilePath(target.ScaledPathSegment, jpgName),
                     Width = width,
                     Height = height
                 };
@@ -283,7 +291,7 @@ namespace SizePhotos
                                            
         static bool IsRawFile(string photoPath)
         {
-            return !photoPath.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase);
+            return photoPath.EndsWith("nef", StringComparison.InvariantCultureIgnoreCase);
         }
         
         

@@ -16,8 +16,9 @@ namespace SizePhotos
 
         readonly object _lockObj = new object();
         readonly CategoryInfo _category;
-        SizePhotoOptions _opts;
-        IResultWriter _writer;
+        readonly SizePhotoOptions _opts;
+        readonly PhotoPathHelper _pathHelper;
+        readonly IResultWriter _writer;
         ProcessingTarget SourceResizeTarget { get; set; }
         ProcessingTarget XsResizeTarget { get; set; }
         ProcessingTarget SmResizeTarget { get; set; }
@@ -28,14 +29,25 @@ namespace SizePhotos
         
         public Program(string[] args)
         {
-            _opts = new SizePhotoOptions(args);
-            
             try
             {
+                _opts = new SizePhotoOptions();
                 _opts.ProcessArgs(args, null);
+                
+                var errors = _opts.ValidateOptions().ToList();
+            
+                if(errors.Count > 0)
+                {
+                    ShowUsage(_opts, errors);
+                    Environment.Exit(1);
+                }
+            
+                _pathHelper = _opts.GetPathHelper();
             }
-            catch (System.Exception)
+            catch(Exception ex)
             {
+                Console.WriteLine($"Sorry, there was an error: {ex.Message}");
+                
                 ShowUsage(_opts, null);
                 Environment.Exit(1);
             }
@@ -70,14 +82,6 @@ namespace SizePhotos
                               
         void Run()
         {
-            var errors = _opts.ValidateOptions().ToList();
-            
-            if(errors.Count > 0)
-            {
-                ShowUsage(_opts, errors);
-                Environment.Exit(1);
-            }
-            
             if(!Directory.Exists(_opts.LocalPhotoRoot))
             {
                 throw new DirectoryNotFoundException(string.Concat("The picture directory specified, ", _opts.LocalPhotoRoot, ", does not exist.  Please specify a directory containing photos."));
@@ -108,8 +112,7 @@ namespace SizePhotos
         ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize, uint? quality)
         {
             return new ProcessingTarget {
-                LocalPath = _opts.GetLocalScaledPath(pathSegment),
-                WebPath = _opts.GetWebScaledPath(pathSegment),
+                ScaledPathSegment = pathSegment,
                 MaxHeight = maxHeight,
                 MaxWidth = maxWidth,
                 Quality = quality,
@@ -130,13 +133,13 @@ namespace SizePhotos
             
             foreach(var target in targets)
             {
-                if(Directory.Exists(target.LocalPath))
+                if(Directory.Exists(_pathHelper.GetScaledLocalPath(target.ScaledPathSegment)))
                 {
                     throw new IOException("At least one of the resize directories already exist.  Please ensure you need to run this script, and if so, remove these directories.");
                 }
                 else
                 {
-                    Directory.CreateDirectory(target.LocalPath);
+                    Directory.CreateDirectory(_pathHelper.GetScaledLocalPath(target.ScaledPathSegment));
                 }
             }
         }
@@ -169,12 +172,14 @@ namespace SizePhotos
         
         void ProcessPhoto(string file)
         {
+            file = Path.GetFileName(file);
+            
             if(!_opts.Quiet)
             {
-                Console.WriteLine("Processing: " + Path.GetFileName(file));
+                Console.WriteLine($"Processing: {file}");
             }
 
-            var proc = new PhotoProcessor(SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget, _opts.Quiet);
+            var proc = new PhotoProcessor(_pathHelper, SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget, _opts.Quiet);
             var result = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)

@@ -193,19 +193,19 @@ namespace SizePhotos.ResultWriters
                     // scaled images
                     result.Xs.Height.ToString(),
                     result.Xs.Width.ToString(),
-                    SqlHelper.SqlString(result.Xs.WebPath),
+                    SqlHelper.SqlString(result.Xs.WebFilePath),
                     result.Sm.Height.ToString(),
                     result.Sm.Width.ToString(),
-                    SqlHelper.SqlString(result.Sm.WebPath),
+                    SqlHelper.SqlString(result.Sm.WebFilePath),
                     result.Md.Height.ToString(),
                     result.Md.Width.ToString(),
-                    SqlHelper.SqlString(result.Md.WebPath),
+                    SqlHelper.SqlString(result.Md.WebFilePath),
                     result.Lg.Height.ToString(),
                     result.Lg.Width.ToString(),
-                    SqlHelper.SqlString(result.Lg.WebPath),
+                    SqlHelper.SqlString(result.Lg.WebFilePath),
                     result.Source.Height.ToString(),
                     result.Source.Width.ToString(),
-                    SqlHelper.SqlString(result.Source.WebPath),
+                    SqlHelper.SqlString(result.Source.WebFilePath),
                     // exif
                     SqlHelper.SqlNumber(result.ExifData.BitsPerSample),
                     SqlHelper.SqlNumber(result.ExifData.Compression),
@@ -295,7 +295,7 @@ namespace SizePhotos.ResultWriters
             var result = _results.First();
             
             _writer.WriteLine(string.Concat("    INSERT INTO photo.category (name, year, is_private, teaser_photo_width, teaser_photo_height, teaser_photo_path) ",
-                                                "VALUES (", SqlHelper.SqlString(_category.Name), ", ", _category.Year, ", ", _category.IsPrivate, ", ", result.Xs.Width, ", ", result.Xs.Height, ", ", SqlHelper.SqlString(result.Xs.WebPath), ");"));
+                                                "VALUES (", SqlHelper.SqlString(_category.Name), ", ", _category.Year, ", ", _category.IsPrivate, ", ", result.Xs.Width, ", ", result.Xs.Height, ", ", SqlHelper.SqlString(result.Xs.WebFilePath), ");"));
 
             _writer.WriteLine();
         }

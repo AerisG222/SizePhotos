@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Commons.GetOptions;
 
 
@@ -9,12 +7,7 @@ namespace SizePhotos
     public class SizePhotoOptions 
         : Options
     {
-        string _webPhotoRootPath = string.Empty;
-        string _categorySegment = string.Empty;
-        string _localPhotoRootPath = string.Empty;
-        
-        
-        public SizePhotoOptions(string[] args)
+        public SizePhotoOptions()
             : base(new OptionsContext())
         {
             
@@ -30,45 +23,12 @@ namespace SizePhotos
         
         
         [Option("Directory containing the source photos", ShortForm = 'p', Name = "photo-dir")]
-        public string LocalPhotoRoot
-        { 
-            get
-            {
-                return _localPhotoRootPath;
-            } 
-            set
-            {
-                _localPhotoRootPath = value;
-                
-                if(!string.IsNullOrEmpty(value))
-                {
-                    string[] dirComponents = value.Split(Path.DirectorySeparatorChar);
-
-                    CategoryDirectorySegment = dirComponents[dirComponents.Length - 1];
-                }
-            } 
-        }
+        public string LocalPhotoRoot { get; set; }
         
         
         [Option("URL path to the root photos directory, ex: images", ShortForm = 'w', Name = "web-photo-root")]
-        public string WebPhotoRootPath 
-        { 
-            get
-            {
-                return _webPhotoRootPath;
-            } 
-            set
-            {
-                if(string.IsNullOrWhiteSpace(value))
-                {
-                    _webPhotoRootPath = string.Empty;
-                    return;
-                }
-                
-                _webPhotoRootPath = TrimPathSeparators(value);
-            } 
-        }
-        
+        public string WebPhotoRoot { get; set; }
+
         
         [Option("Mark the category as private", ShortForm = 'x', Name = "private")]
         public bool IsPrivate { get; set; }
@@ -82,7 +42,7 @@ namespace SizePhotos
         public bool Quiet { get; set; }
         
         
-        [Option("Generate an insert script [default]", ShortForm = 'i', Name = "sql-insert-mode")]
+        [Option("Generate an insert script", ShortForm = 'i', Name = "sql-insert-mode")]
         public bool InsertMode { get; set; }
         
         
@@ -92,39 +52,6 @@ namespace SizePhotos
         
         [Option("Do not generate an output file, useful when reprocessing", ShortForm = 'n', Name = "no-output-mode")]
         public bool NoOutputMode { get; set; }
-        
-        
-        string CategoryDirectorySegment 
-        { 
-            get
-            {
-                return _categorySegment;
-            } 
-            set
-            {
-                if(string.IsNullOrWhiteSpace(value))
-                {
-                    _categorySegment = string.Empty;
-                    return;
-                }
-                
-                _categorySegment = TrimPathSeparators(value);
-            } 
-        }
-        
-        
-        public new void ProcessArgs(string[] args, Func<int, string[]> exitFunc)
-        {
-            base.ProcessArgs(args, null);
-            
-            // when updating, the expectation is that the directory will match the expected path name convention
-            // as such, determine the year based on the localpath (this is necessary to generate proper webpaths in sql)
-            if(UpdateMode && Year == 0)
-            {
-                var parts = LocalPhotoRoot.Split(Path.DirectorySeparatorChar);
-                Year = ushort.Parse(parts[parts.Length - 2]);
-            }
-        }
         
         
         public IEnumerable<string> ValidateOptions()
@@ -146,7 +73,7 @@ namespace SizePhotos
             }
             else
             {
-                if((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(WebPhotoRootPath))
+                if((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(WebPhotoRoot))
                 {
                     yield return "Please specify the web root path";
                 }
@@ -167,44 +94,16 @@ namespace SizePhotos
                 }
             }
         }
-
         
-        public string WebCategoryPath
+        
+        public PhotoPathHelper GetPathHelper()
         {
-            get
+            if(InsertMode)
             {
-                return $"/{WebPhotoRootPath}/{Year}/{CategoryDirectorySegment}/";
-            }
-        }
-        
-        
-        public string GetLocalScaledPath(string scaledPathSegment)
-        {
-            return $"{Path.Combine(LocalPhotoRoot, scaledPathSegment)}{Path.DirectorySeparatorChar}";
-        }
-        
-        
-        public string GetWebScaledPath(string scaledPathSegment)
-        {
-            return $"{WebCategoryPath}{scaledPathSegment}/";
-        }
-        
-        
-        string TrimPathSeparators(string val)
-        {
-            val = val.Trim();
-                
-            while(val.StartsWith("/"))
-            {
-                val = val.Substring(1);
+                return new PhotoPathHelper(LocalPhotoRoot, WebPhotoRoot, Year);
             }
             
-            while(val.EndsWith("/"))
-            {
-                val = val.Substring(0, val.LastIndexOf('/'));
-            }
-            
-            return val;
+            return new PhotoPathHelper(LocalPhotoRoot, WebPhotoRoot);
         }
     }
 }

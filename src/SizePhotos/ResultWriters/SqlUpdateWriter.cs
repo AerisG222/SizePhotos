@@ -180,25 +180,25 @@ namespace SizePhotos.ResultWriters
             
             foreach(var result in _results)
             {
-                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {result.Xs.Width}, teaser_photo_height = {result.Xs.Height}, teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebPath)} WHERE teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebPath)};"); 
+                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {result.Xs.Width}, teaser_photo_height = {result.Xs.Height}, teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebFilePath)} WHERE teaser_photo_path = {SqlHelper.SqlString(result.Xs.WebFilePath)};"); 
                 
                 var args = new string[] {
                     // scaled images
                     result.Xs.Height.ToString(),
                     result.Xs.Width.ToString(),
-                    SqlHelper.SqlString(result.Xs.WebPath),
+                    SqlHelper.SqlString(result.Xs.WebFilePath),
                     result.Sm.Height.ToString(),
                     result.Sm.Width.ToString(),
-                    SqlHelper.SqlString(result.Sm.WebPath),
+                    SqlHelper.SqlString(result.Sm.WebFilePath),
                     result.Md.Height.ToString(),
                     result.Md.Width.ToString(),
-                    SqlHelper.SqlString(result.Md.WebPath),
+                    SqlHelper.SqlString(result.Md.WebFilePath),
                     result.Lg.Height.ToString(),
                     result.Lg.Width.ToString(),
-                    SqlHelper.SqlString(result.Lg.WebPath),
+                    SqlHelper.SqlString(result.Lg.WebFilePath),
                     result.Source.Height.ToString(),
                     result.Source.Width.ToString(),
-                    SqlHelper.SqlString(result.Source.WebPath),
+                    SqlHelper.SqlString(result.Source.WebFilePath),
                     // exif
                     SqlHelper.SqlNumber(result.ExifData.BitsPerSample),
                     SqlHelper.SqlNumber(result.ExifData.Compression),
@@ -283,7 +283,7 @@ namespace SizePhotos.ResultWriters
                     sets[i] = $"{_cols[i]} = {args[i]}";
                 }
                 
-                _writer.WriteLine($"UPDATE photo.photo SET {string.Join(", ", sets)} WHERE lg_path = {SqlHelper.SqlString(result.Lg.WebPath)};");
+                _writer.WriteLine($"UPDATE photo.photo SET {string.Join(", ", sets)} WHERE lg_path = {SqlHelper.SqlString(result.Lg.WebFilePath)};");
                 _writer.WriteLine();
             }
         }
