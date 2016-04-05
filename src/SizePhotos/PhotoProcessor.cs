@@ -185,7 +185,6 @@ namespace SizePhotos
                 FlashFocalLength = GetExifData<double>(tags, "FlashFocalLength")?.TypedValue,
                 FlashMode = GetExifData(tags, "FlashMode")?.Value,
                 FlashSetting = GetExifData(tags, "FlashSetting")?.Value,
-                FlashSource = GetExifData(tags, "FlashSource")?.Value,
                 FlashType = GetExifData(tags, "FlashType")?.Value,
                 FocusDistance = GetExifData<double>(tags, "FocusDistance")?.TypedValue,
                 FocusMode = GetExifData(tags, "FocusMode")?.Value,

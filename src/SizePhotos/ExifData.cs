@@ -60,7 +60,6 @@ namespace SizePhotos
         public double? FlashFocalLength { get; set; }
         public string FlashMode { get; set; }
         public string FlashSetting { get; set; }
-        public string FlashSource { get; set; }
         public string FlashType { get; set; }
         public double? FocusDistance { get; set; }
         public string FocusMode { get; set; }
