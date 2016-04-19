@@ -100,11 +100,11 @@ namespace SizePhotos
                 
                 if(target.Optimize)
                 {
-                    tmpWand.SigmoidalContrastImage(true, 2, 0);
+                    tmpWand.SigmoidalContrastImage(true, 2.8, tmpWand.ImageDepth * .6);
                 }
                 
                 tmpWand.ScaleImage(width, height);
-                tmpWand.UnsharpMaskImage(0, 0.75, 0.75, 0.008);
+                tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
 
                 if(target.Quality != null)
                 {
@@ -248,6 +248,7 @@ namespace SizePhotos
             }
             catch
             {
+                //return null;
                 throw new InvalidDataException($"error trying to cast tag for {datapoint}.  Was expecting {typeof(T)} but got {t.GetType()} with value {t.Value}");    
             }
         }
