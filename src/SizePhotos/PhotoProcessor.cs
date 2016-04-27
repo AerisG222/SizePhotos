@@ -80,60 +80,71 @@ namespace SizePhotos
                 wand.AutoOrientImage();
                 wand.StripImage();
                 
-                result.Xs = ProcessTarget(wand, XsTarget, jpgName);
-                result.Sm = ProcessTarget(wand, SmTarget, jpgName);
-                result.Md = ProcessTarget(wand, MdTarget, jpgName);
-                result.Lg = ProcessTarget(wand, LgTarget, jpgName);
+                using(var optWand = Optimize(wand))
+                {
+                    result.Xs = ProcessTarget(wand, optWand, XsTarget, jpgName);
+                    result.Sm = ProcessTarget(wand, optWand, SmTarget, jpgName);
+                    result.Md = ProcessTarget(wand, optWand, MdTarget, jpgName);
+                    result.Lg = ProcessTarget(wand, optWand, LgTarget, jpgName);
+                }
             }
             
             return result;
         }
         
         
-        ProcessedPhoto ProcessTarget(MagickWand wand, ProcessingTarget target, string jpgName)
+        MagickWand Optimize(MagickWand wand)
         {
-            var contrastRatioThreshold = 0.5;
-            var tooContrastyThreshold = 1.9;
+            // the following thresholds are not scientific (big surprise).  They were derrived by running 
+            // a dozen sample files and reviewing mean+stddev values and the images to determine a reasonable
+            // way to adjust the image while trying not to overprocess the images
+            var brightnessToContrastThreshold = 0.5;
+            var contrastStrengthThreshold = 1.9;
+            double mean, stddev;
             
-            using(var tmpWand = wand.Clone())
+            var optWand = wand.Clone();
+            
+            wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
+            wand.AutoLevelImage();
+            
+            var brightnessToContrast = stddev / mean;
+            var contrastStrength = stddev / 10000;
+            
+            if(brightnessToContrast < brightnessToContrastThreshold)
+            {
+                var saturationAmount = Convert.ToInt32((brightnessToContrastThreshold - brightnessToContrast) * 100) * 4;
+                
+                // limit the saturation adjustment to 20%
+                if(saturationAmount > 20)
+                {
+                    saturationAmount = 20;
+                }
+                
+                saturationAmount += 100;
+                
+                // 100 = don't adjust brightness
+                // 300 = don't rotate hue
+                wand.ModulateImage(100, saturationAmount, 300);
+            }
+            else if(contrastStrength > contrastStrengthThreshold)
+            {
+                wand.SigmoidalContrastImage(true, 2, 0);  // smooth brightness/contrast
+            }
+            
+            return optWand;
+        }
+        
+        
+        ProcessedPhoto ProcessTarget(MagickWand wand, MagickWand optimizedWand, ProcessingTarget target, string jpgName)
+        {
+            var srcWand = target.Optimize ? optimizedWand : wand;
+            
+            using(var tmpWand = srcWand.Clone())
             {
                 var path = PathHelper.GetScaledLocalPath(target.ScaledPathSegment, jpgName);
                 uint width, height;
                 
-                wand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
-                
-                if(target.Optimize)
-                {
-                    double mean, stddev;
-                    
-                    wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
-                                        
-                    wand.AutoLevelImage();
-                    
-                    var contrastRatio = stddev / mean;
-                    var contrastyRatio = stddev / 10000;
-                    
-                    if(contrastRatio < contrastRatioThreshold)
-                    {
-                        var saturationAmount = Convert.ToInt32((contrastRatioThreshold - contrastRatio) * 100) * 4;
-                        
-                        // limit the saturation adjustment to 20%
-                        if(saturationAmount > 20)
-                        {
-                            saturationAmount = 20;
-                        }
-                        
-                        saturationAmount += 100;
-                        
-                        // 100 = don't adjust brightness
-                        // 300 = don't rotate hue
-                        wand.ModulateImage(100, saturationAmount, 300);
-                    }
-                    else if(contrastyRatio > tooContrastyThreshold)
-                    {
-                        wand.SigmoidalContrastImage(true, 2, 0);  // smooth brightness/contrast
-                    }
-                }
+                tmpWand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
                 
                 tmpWand.ScaleImage(width, height);
                 tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
