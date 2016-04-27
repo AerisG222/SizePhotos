@@ -9,6 +9,7 @@ using NExifTool;
 using NExifTool.Enums;
 using NExifTool.Enums.Gps;
 using NMagickWand;
+using NMagickWand.Enums;
 
 
 namespace SizePhotos
@@ -91,6 +92,9 @@ namespace SizePhotos
         
         ProcessedPhoto ProcessTarget(MagickWand wand, ProcessingTarget target, string jpgName)
         {
+            var contrastRatioThreshold = 0.5;
+            var tooContrastyThreshold = 1.9;
+            
             using(var tmpWand = wand.Clone())
             {
                 var path = PathHelper.GetScaledLocalPath(target.ScaledPathSegment, jpgName);
@@ -100,7 +104,35 @@ namespace SizePhotos
                 
                 if(target.Optimize)
                 {
-                    tmpWand.SigmoidalContrastImage(true, 2.8, tmpWand.ImageDepth * .6);
+                    double mean, stddev;
+                    
+                    wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
+                                        
+                    wand.AutoLevelImage();
+                    
+                    var contrastRatio = stddev / mean;
+                    var contrastyRatio = stddev / 10000;
+                    
+                    if(contrastRatio < contrastRatioThreshold)
+                    {
+                        var saturationAmount = Convert.ToInt32((contrastRatioThreshold - contrastRatio) * 100) * 4;
+                        
+                        // limit the saturation adjustment to 20%
+                        if(saturationAmount > 20)
+                        {
+                            saturationAmount = 20;
+                        }
+                        
+                        saturationAmount += 100;
+                        
+                        // 100 = don't adjust brightness
+                        // 300 = don't rotate hue
+                        wand.ModulateImage(100, saturationAmount, 300);
+                    }
+                    else if(contrastyRatio > tooContrastyThreshold)
+                    {
+                        wand.SigmoidalContrastImage(true, 2, 0);  // smooth brightness/contrast
+                    }
                 }
                 
                 tmpWand.ScaleImage(width, height);
