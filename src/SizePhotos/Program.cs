@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NMagickWand;
 using SizePhotos.ResultWriters;
+using CommandLine;
+using CommandLine.Text;
 
 
 namespace SizePhotos
@@ -27,30 +29,10 @@ namespace SizePhotos
         List<ProcessingTarget> ResizeTargetList { get; } = new List<ProcessingTarget>();
         
         
-        public Program(string[] args)
+        public Program(SizePhotoOptions opts)
         {
-            try
-            {
-                _opts = new SizePhotoOptions();
-                _opts.ProcessArgs(args, null);
-                
-                var errors = _opts.ValidateOptions().ToList();
-            
-                if(errors.Count > 0)
-                {
-                    ShowUsage(_opts, errors);
-                    Environment.Exit(1);
-                }
-            
-                _pathHelper = _opts.GetPathHelper();
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"Sorry, there was an error: {ex.Message}");
-                
-                ShowUsage(_opts, null);
-                Environment.Exit(1);
-            }
+            _opts = opts;
+            _pathHelper = _opts.GetPathHelper();
             
             _category = new CategoryInfo {
                 Name = _opts.CategoryName,
@@ -75,8 +57,30 @@ namespace SizePhotos
         
         public static void Main(string[] args)
         {
-            var p = new Program(args);
-            p.Run();
+            var parser = new Parser(config => config.HelpWriter = null);
+            var result = parser.ParseArguments<SizePhotoOptions>(args);
+            
+            var exitCode = result.MapResult(
+                opts => 
+                {
+                    var errs = opts.ValidateOptions().ToList();
+                    
+                    if(errs.Count > 0)
+                    {
+                        ShowUsage(errs);
+                        return 1;
+                    }
+            
+                    var p = new Program(opts);
+                    p.Run();
+                    return 0;
+                },
+                errors =>
+                {
+                    ShowUsage();
+                    return 1;
+                }
+            );
         }
                               
                               
@@ -189,20 +193,28 @@ namespace SizePhotos
         }
         
         
-        static void ShowUsage(SizePhotoOptions options, IList<string> errors)
+        static void ShowUsage(IList<string> errors = null)
         {
-            options.DoHelp();
+            var help = new HelpText();
+            
+            help.Heading = "SizePhotos";
+            help.AddPreOptionsLine("A tool to prepare and optimize images for display on the web.");
+            
+            // this is a little lame, but force a NotParsed<T> options result
+            // so that we can get a nice help screen.  this might be required
+            // if the passed args are valid to the parser, but not w/ custom 
+            // validation logic that runs after parsing
+            var parser = new Parser(config => config.HelpWriter = null);
+            var result = parser.ParseArguments<SizePhotoOptions>(new string[] { "--xxx" });
+            help.AddOptions(result);
             
             if(errors != null)
             {
-                Console.WriteLine();
-                Console.WriteLine("The following errors were encountered:");
-            
-                foreach(var err in errors)
-                {
-                    Console.WriteLine(err);
-                }
+                help.AddPostOptionsLine("Errors:");
+                help.AddPostOptionsLines(errors);
             }
+            
+            Console.WriteLine(help.ToString());            
         }
     }
 }

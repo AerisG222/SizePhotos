@@ -1,56 +1,48 @@
 using System.Collections.Generic;
-using Commons.GetOptions;
+using CommandLine;
 
 
 namespace SizePhotos
 {
-    public class SizePhotoOptions 
-        : Options
+    public class SizePhotoOptions
     {
-        public SizePhotoOptions()
-            : base(new OptionsContext())
-        {
-            
-        }
-        
-        
-        [Option("Name of the category for these photos", ShortForm = 'c', Name = "category" )]
+        [Option('c', "category", HelpText = "Name of the category for these photos")]
         public string CategoryName { get; set;}
         
         
-        [Option("Path to the output SQL file that will be generated",  ShortForm = 'o', Name = "out-file")]
+        [Option('o', "out-file", HelpText = "Path to the output SQL file that will be generated")]
         public string Outfile { get; set; }
         
         
-        [Option("Directory containing the source photos", ShortForm = 'p', Name = "photo-dir")]
+        [Option('p', "photo-dir", HelpText = "Directory containing the source photos")]
         public string LocalPhotoRoot { get; set; }
         
         
-        [Option("URL path to the root photos directory, ex: images", ShortForm = 'w', Name = "web-photo-root")]
+        [Option('w', "web-photo-root", HelpText = "URL path to the root photos directory, ex: images")]
         public string WebPhotoRoot { get; set; }
 
         
-        [Option("Mark the category as private", ShortForm = 'x', Name = "private")]
+        [Option('x', "private", HelpText = "Mark the category as private")]
         public bool IsPrivate { get; set; }
         
         
-        [Option("Year the pictures were taken", ShortForm = 'y', Name = "year")]
+        [Option('y', "year", HelpText = "Year the pictures were taken")]
         public ushort Year { get; set; }
         
         
-        [Option("Be quiet and do not emit status messages", ShortForm = 'q', Name = "quiet")]
+        [Option('q', "quiet", HelpText = "Be quiet and do not emit status messages")]
         public bool Quiet { get; set; }
         
         
-        [Option("Generate an insert script", ShortForm = 'i', Name = "sql-insert-mode")]
+        [Option('i', "sql-insert-mode", SetName = "OutputMode", HelpText = "Generate an insert script")]
         public bool InsertMode { get; set; }
         
         
-        [Option("Generate an update script (based on lg filepath)", ShortForm = 'u', Name = "sql-update-mode")]
+        [Option('u', "sql-update-mode", SetName = "OutputMode", HelpText = "Generate an update script (based on lg filepath)")]
         public bool UpdateMode { get; set; }
         
         
-        [Option("Do not generate an output file, useful when reprocessing", ShortForm = 'n', Name = "no-output-mode")]
+        [Option('n', "no-output-mode", SetName = "OutputMode", HelpText = "Do not generate an output file, useful when reprocessing")]
         public bool NoOutputMode { get; set; }
         
         

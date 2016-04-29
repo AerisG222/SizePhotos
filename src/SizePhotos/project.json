@@ -15,7 +15,7 @@
         "run": "SizePhotos" 
     },
     "dependencies": {
-        "Commons.GetOptions": "2.0.0",
+        "CommandLineParser": "2.0.275-*",
         "NDCRaw": "0.2.1",
         "NExifTool": "0.4.2",
         "NMagickWand": "0.3.6"
