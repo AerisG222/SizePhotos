@@ -1,2 +1,2 @@
 #!/bin/bash
-dnx -p ../src/SizePhotos/project.json run SizePhotos -i
+dnx -p ../src/SizePhotos/project.json SizePhotos -i
