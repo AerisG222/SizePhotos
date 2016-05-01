@@ -18,7 +18,7 @@
         "CommandLineParser": "2.0.275-*",
         "NDCRaw": "0.2.1",
         "NExifTool": "0.4.2",
-        "NMagickWand": "0.3.6"
+        "NMagickWand": "0.3.7"
     },
     "frameworks": {
         "dnx451": { }
