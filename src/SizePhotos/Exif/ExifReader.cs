@@ -8,7 +8,7 @@ using NExifTool.Enums;
 using NExifTool.Enums.Gps;
 
 
-namespace SizePhotos
+namespace SizePhotos.Exif
 {
     public class ExifReader
         : IExifReader
@@ -112,7 +112,7 @@ namespace SizePhotos
         }
         
         
-        static Tag<T> GetExifData<T>(IEnumerable<Tag> exifData, string datapoint)
+        Tag<T> GetExifData<T>(IEnumerable<Tag> exifData, string datapoint)
         {
             var t = GetExifData(exifData, datapoint);
             
@@ -147,9 +147,13 @@ namespace SizePhotos
             }
             catch
             {
-                //return null;
-                throw new ApplicationException($"error trying to cast tag for {datapoint}.  Was expecting {typeof(T)} but got {t.GetType()} with value {t.Value}");    
+                if(!_quiet)
+                {
+                    Console.WriteLine($"error trying to cast tag for {datapoint}.  Was expecting {typeof(T)} but got {t.GetType()} with value {t.Value}");
+                }
             }
+            
+            return null;
         }
         
         

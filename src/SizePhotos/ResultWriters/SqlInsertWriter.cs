@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using SizePhotos.Optimizer;
+using SizePhotos.Raw;
 
 namespace SizePhotos.ResultWriters
 {
@@ -106,7 +107,11 @@ namespace SizePhotos.ResultWriters
             "lens_id",
             "light_value",
             "scale_factor_35_efl",
-            "shutter_speed"
+            "shutter_speed",
+            // image optimizations
+            "raw_conversion_mode_id",
+            "sigmoidal_adjustment",
+            "saturation_adjustment"
         };
         
         
@@ -187,6 +192,9 @@ namespace SizePhotos.ResultWriters
 
             foreach(var result in _results)
             {
+                var rawResult = result.RawConversionResult as RawConversionResult;
+                var optResult = result.OptimizationResult as OptimizationResult;
+                
                 var values = new string[] {
                     "(SELECT currval('photo.category_id_seq'))",
                     _category.IsPrivate.ToString(),
@@ -280,7 +288,11 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlLookupId("photo.lens", result.ExifData.LensId),
                     SqlHelper.SqlNumber(result.ExifData.LightValue),
                     SqlHelper.SqlNumber(result.ExifData.ScaleFactor35Efl),
-                    SqlHelper.SqlString(result.ExifData.ShutterSpeed)
+                    SqlHelper.SqlString(result.ExifData.ShutterSpeed),
+                    // image optimizations
+                    SqlHelper.SqlNumber((short?)rawResult?.Mode),
+                    SqlHelper.SqlNumber(optResult?.SigmoidalOptimization),
+                    SqlHelper.SqlNumber(optResult?.SaturationOptimization)
                 };
                 
                 _writer.WriteLine($"INSERT INTO photo.photo ({string.Join(", ", _cols)}) VALUES ({string.Join(", ", values)});");

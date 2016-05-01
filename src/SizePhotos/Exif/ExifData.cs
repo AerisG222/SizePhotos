@@ -1,7 +1,7 @@
 using System;
 
 
-namespace SizePhotos
+namespace SizePhotos.Exif
 {
     public class ExifData
     {

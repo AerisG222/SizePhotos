@@ -2,10 +2,10 @@ using System;
 using NMagickWand;
 
 
-namespace SizePhotos
+namespace SizePhotos.Optimizer
 {
     public interface IPhotoOptimizer
     {
-        void Optimize(MagickWand wand);
+        IOptimizationResult Optimize(MagickWand wand);
     }
 }

@@ -6,7 +6,7 @@ using NMagickWand;
 using NMagickWand.Enums;
 
 
-namespace SizePhotos
+namespace SizePhotos.Raw
 {
     public class RawConverter
         : IRawConverter
@@ -27,28 +27,33 @@ namespace SizePhotos
         }
         
         
-        public async Task<string> ConvertAsync(string sourceFile)
+        public async Task<IRawConversionResult> ConvertAsync(string sourceFile)
         {
-            var dcraw = new DCRaw(GetOptimalOptionsForPhoto(sourceFile));
-            var ppmFile = (await dcraw.ConvertAsync(sourceFile)).OutputFilename;
+            var result = new RawConversionResult();
             
-            return ppmFile;
+            result.Mode = DetermineConversionMode(sourceFile);
+            
+            if(!_quiet)
+            {
+                Console.WriteLine($"  - using non-brightening mode for {sourceFile}");
+            }
+            
+            var dcraw = new DCRaw(GetOptimalOptions(result.Mode));
+            
+            result.OutputFile = (await dcraw.ConvertAsync(sourceFile)).OutputFilename;
+            
+            return result;
         }
         
         
-        DCRawOptions GetOptimalOptionsForPhoto(string photoPath)
+        RawConversionMode DetermineConversionMode(string photoPath)
         {
             if(GetDarkThresholdForRawImage(photoPath) < DARK_THRESHOLD)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"  -using night mode for {photoPath}");    
-                }
-                
-                return GetOptimalNightOptions();
+                return RawConversionMode.NonBrightening;
             }
             
-            return GetOptimalDayOptions();
+            return RawConversionMode.Brightening;
         }
         
         
@@ -78,7 +83,18 @@ namespace SizePhotos
         }
         
         
-        static DCRawOptions GetOptimalDayOptions()
+        static DCRawOptions GetOptimalOptions(RawConversionMode mode)
+        {
+            if(mode == RawConversionMode.NonBrightening)
+            {
+                return GetOptimalNonBrighteningOptions();
+            }
+            
+            return GetOptimalBrighteningOptions();
+        }
+        
+        
+        static DCRawOptions GetOptimalBrighteningOptions()
         {
             return new DCRawOptions {
                 UseCameraWhiteBalance = true,
@@ -89,9 +105,9 @@ namespace SizePhotos
         }
         
         
-        static DCRawOptions GetOptimalNightOptions()
+        static DCRawOptions GetOptimalNonBrighteningOptions()
         {
-            var opts = GetOptimalDayOptions();
+            var opts = GetOptimalBrighteningOptions();
             
             opts.DontAutomaticallyBrighten = true;
             

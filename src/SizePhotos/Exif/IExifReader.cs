@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace SizePhotos
+namespace SizePhotos.Exif
 {
     public interface IExifReader
     {

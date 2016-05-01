@@ -2,11 +2,11 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace SizePhotos
+namespace SizePhotos.Raw
 {
     public interface IRawConverter
     {
         bool IsRawFile(string file);
-        Task<string> ConvertAsync(string sourceFile);
+        Task<IRawConversionResult> ConvertAsync(string sourceFile);
     }
 }

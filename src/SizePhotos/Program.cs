@@ -7,6 +7,9 @@ using NMagickWand;
 using SizePhotos.ResultWriters;
 using CommandLine;
 using CommandLine.Text;
+using SizePhotos.Optimizer;
+using SizePhotos.Raw;
+using SizePhotos.Exif;
 
 
 namespace SizePhotos
@@ -183,7 +186,7 @@ namespace SizePhotos
                 Console.WriteLine($"Processing: {file}");
             }
 
-            var proc = new PhotoProcessor(_pathHelper, new PhotoOptimizer(), new RawConverter(_opts.Quiet), new ExifReader(_opts.Quiet), 
+            var proc = new PhotoProcessor(_pathHelper, new PhotoOptimizer(_opts.Quiet), new RawConverter(_opts.Quiet), new ExifReader(_opts.Quiet), 
                                           SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget, 
                                           _opts.Quiet);
             var result = proc.ProcessPhotoAsync(file).Result;

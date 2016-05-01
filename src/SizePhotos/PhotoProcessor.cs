@@ -2,6 +2,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using NMagickWand;
+using SizePhotos.Exif;
+using SizePhotos.Optimizer;
+using SizePhotos.Raw;
 
 
 namespace SizePhotos
@@ -49,7 +52,6 @@ namespace SizePhotos
             var jpgName = Path.ChangeExtension(filename, ".jpg");
             var origPath = _pathHelper.GetSourceFilePath(filename);
             var srcPath = _pathHelper.GetScaledLocalPath(SourceTarget.ScaledPathSegment, filename);
-            string ppmFile = null;
             
             result.ExifData = await _exifReader.ReadExifDataAsync(origPath);
             
@@ -65,10 +67,10 @@ namespace SizePhotos
             {
                 if(_rawConverter.IsRawFile(srcPath))
                 {
-                    ppmFile = await _rawConverter.ConvertAsync(srcPath);
+                    result.RawConversionResult = await _rawConverter.ConvertAsync(srcPath);
                     
-                    wand.ReadImage(ppmFile);
-                    File.Delete(ppmFile);
+                    wand.ReadImage(result.RawConversionResult.OutputFile);
+                    File.Delete(result.RawConversionResult.OutputFile);
                 } 
                 else 
                 {
@@ -80,7 +82,7 @@ namespace SizePhotos
                 
                 using(var optWand = wand.Clone())
                 {
-                    _optimizer.Optimize(optWand);
+                    result.OptimizationResult = _optimizer.Optimize(optWand);
                     
                     result.Xs = ProcessTarget(wand, optWand, XsTarget, jpgName);
                     result.Sm = ProcessTarget(wand, optWand, SmTarget, jpgName);
