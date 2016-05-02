@@ -10,7 +10,7 @@ namespace SizePhotos.Optimizer
     {
         // this seems to work well for both brightness and saturation
         const double THRESHOLD_DECIMAL = 0.30;
-        const double MIN_MEAN_FOR_BRIGTENING_ADJUSTMENT = 2000;
+        const double MIN_MEAN_FOR_BRIGHTENING_ADJUSTMENT = 2000;
         const double MAX_SIGMOIDAL_ADJUSTMENT = 3;
         const double MAX_SATURATION_ADJUSTMENT = 20;
         
@@ -70,7 +70,7 @@ namespace SizePhotos.Optimizer
         {
             double adjustment = 0;
             
-            if(meanQuantumPercent < THRESHOLD_DECIMAL && mean > MIN_MEAN_FOR_BRIGTENING_ADJUSTMENT)
+            if(meanQuantumPercent < THRESHOLD_DECIMAL && mean > MIN_MEAN_FOR_BRIGHTENING_ADJUSTMENT)
             {
                 adjustment = CalculateAdjustment(meanQuantumPercent, MAX_SIGMOIDAL_ADJUSTMENT);
             }
