@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NMagickWand;
 using SizePhotos.Exif;
 using SizePhotos.Optimizer;
+using SizePhotos.Quality;
 using SizePhotos.Raw;
 
 
@@ -18,6 +19,8 @@ namespace SizePhotos
         readonly IPhotoOptimizer _optimizer;
         readonly IRawConverter _rawConverter;
         readonly IExifReader _exifReader;
+        readonly IQualitySearcher _qualitySearcher;
+        
         
         
         ProcessingTarget SourceTarget { get; set; }
@@ -28,15 +31,24 @@ namespace SizePhotos
         
         
         
-        public PhotoProcessor(PhotoPathHelper pathHelper, IPhotoOptimizer photoOptimizer, IRawConverter rawConverter, IExifReader exifReader,
-                              ProcessingTarget sourceTarget, ProcessingTarget xsTarget, ProcessingTarget smTarget, ProcessingTarget mdTarget, 
-                              ProcessingTarget lgTarget, bool quiet)
+        public PhotoProcessor(PhotoPathHelper pathHelper, 
+                              IPhotoOptimizer photoOptimizer, 
+                              IRawConverter rawConverter, 
+                              IExifReader exifReader,
+                              IQualitySearcher qualitySearcher,
+                              ProcessingTarget sourceTarget, 
+                              ProcessingTarget xsTarget, 
+                              ProcessingTarget smTarget, 
+                              ProcessingTarget mdTarget, 
+                              ProcessingTarget lgTarget, 
+                              bool quiet)
         {
             _quiet = quiet;
             _pathHelper = pathHelper;
             _optimizer = photoOptimizer;
             _rawConverter = rawConverter;
             _exifReader = exifReader;
+            _qualitySearcher = qualitySearcher;
             
             SourceTarget = sourceTarget;
             XsTarget = xsTarget;
@@ -84,10 +96,14 @@ namespace SizePhotos
                 {
                     result.OptimizationResult = _optimizer.Optimize(optWand);
                     
-                    result.Xs = ProcessTarget(wand, optWand, XsTarget, jpgName);
-                    result.Sm = ProcessTarget(wand, optWand, SmTarget, jpgName);
-                    result.Md = ProcessTarget(wand, optWand, MdTarget, jpgName);
-                    result.Lg = ProcessTarget(wand, optWand, LgTarget, jpgName);
+                    // get the best compression quality for the optimized image
+                    // (best => smallest size for negligible quality loss)
+                    var quality = _qualitySearcher.GetOptimalQuality(optWand);
+                    
+                    result.Xs = ProcessTarget(wand, optWand, quality, XsTarget, jpgName);
+                    result.Sm = ProcessTarget(wand, optWand, quality, SmTarget, jpgName);
+                    result.Md = ProcessTarget(wand, optWand, quality, MdTarget, jpgName);
+                    result.Lg = ProcessTarget(wand, optWand, quality, LgTarget, jpgName);
                 }
             }
             
@@ -95,7 +111,11 @@ namespace SizePhotos
         }
         
         
-        ProcessedPhoto ProcessTarget(MagickWand wand, MagickWand optimizedWand, ProcessingTarget target, string jpgName)
+        ProcessedPhoto ProcessTarget(MagickWand wand, 
+                                     MagickWand optimizedWand, 
+                                     uint optimizedQuality, 
+                                     ProcessingTarget target, 
+                                     string jpgName)
         {
             var srcWand = target.Optimize ? optimizedWand : wand;
             
@@ -106,12 +126,13 @@ namespace SizePhotos
                 
                 tmpWand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
                 
+                // http://www.imagemagick.org/Usage/resize/#resize_unsharp
                 tmpWand.ScaleImage(width, height);
                 tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
-
-                if(target.Quality != null)
+                
+                if(target.Optimize)
                 {
-                    tmpWand.ImageCompressionQuality = (uint)target.Quality;
+                    tmpWand.ImageCompressionQuality = optimizedQuality;
                 }
                 
                 tmpWand.WriteImage(path, true);

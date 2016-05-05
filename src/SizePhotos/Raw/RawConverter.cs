@@ -33,9 +33,9 @@ namespace SizePhotos.Raw
             
             result.Mode = DetermineConversionMode(sourceFile);
             
-            if(!_quiet)
+            if(!_quiet && result.Mode == RawConversionMode.NonBrightening)
             {
-                Console.WriteLine($"  - using non-brightening mode for {sourceFile}");
+                Console.WriteLine($"{sourceFile}: raw conversion using non-brightening mode");
             }
             
             var dcraw = new DCRaw(GetOptimalOptions(result.Mode));

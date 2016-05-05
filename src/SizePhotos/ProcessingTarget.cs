@@ -6,7 +6,6 @@ namespace SizePhotos
 {
     public class ProcessingTarget
     {
-        public uint? Quality { get; set; }
         public bool Optimize { get; set; }
         public string ScaledPathSegment { get; set; }
         public uint MaxHeight { get; set; }

@@ -10,15 +10,12 @@ using CommandLine.Text;
 using SizePhotos.Optimizer;
 using SizePhotos.Raw;
 using SizePhotos.Exif;
-
+using SizePhotos.Quality;
 
 namespace SizePhotos
 {
     class Program
     {
-        const int JPG_COMPRESSION_QUALITY = 88;
-
-
         readonly object _lockObj = new object();
         readonly CategoryInfo _category;
         readonly SizePhotoOptions _opts;
@@ -106,23 +103,24 @@ namespace SizePhotos
         void PrepareResizeTargets()
         {
             // original untouched image
-            SourceResizeTarget = GetResizeTarget("src", 0, 0, false, null);
+            SourceResizeTarget = GetResizeTarget("src", 0, 0, false);
             
             // scale + optimize
-            XsResizeTarget = GetResizeTarget("xs", 120, 160, true, JPG_COMPRESSION_QUALITY);
-            SmResizeTarget = GetResizeTarget("sm", 480, 640, true, JPG_COMPRESSION_QUALITY);
-            MdResizeTarget = GetResizeTarget("md", 768, 1024, true, JPG_COMPRESSION_QUALITY);
-            LgResizeTarget = GetResizeTarget("lg", 0, 0, true, JPG_COMPRESSION_QUALITY);
+            // smaller images are more affected by quality, so on xs we force them
+            // to save at higher quality if needed
+            XsResizeTarget = GetResizeTarget("xs", 120, 160, true);
+            SmResizeTarget = GetResizeTarget("sm", 480, 640, true);
+            MdResizeTarget = GetResizeTarget("md", 768, 1024, true);
+            LgResizeTarget = GetResizeTarget("lg", 0, 0, true);
         }
         
         
-        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize, uint? quality)
+        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize)
         {
             return new ProcessingTarget {
                 ScaledPathSegment = pathSegment,
                 MaxHeight = maxHeight,
                 MaxWidth = maxWidth,
-                Quality = quality,
                 Optimize = optimize
             };
         }
@@ -186,9 +184,18 @@ namespace SizePhotos
                 Console.WriteLine($"Processing: {file}");
             }
 
-            var proc = new PhotoProcessor(_pathHelper, new PhotoOptimizer(_opts.Quiet), new RawConverter(_opts.Quiet), new ExifReader(_opts.Quiet), 
-                                          SourceResizeTarget, XsResizeTarget, SmResizeTarget, MdResizeTarget, LgResizeTarget, 
+            var proc = new PhotoProcessor(_pathHelper, 
+                                          new PhotoOptimizer(_opts.Quiet), 
+                                          new RawConverter(_opts.Quiet), 
+                                          new ExifReader(_opts.Quiet), 
+                                          new QualitySearcher(_opts.Quiet),
+                                          SourceResizeTarget, 
+                                          XsResizeTarget, 
+                                          SmResizeTarget, 
+                                          MdResizeTarget, 
+                                          LgResizeTarget, 
                                           _opts.Quiet);
+                                          
             var result = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
