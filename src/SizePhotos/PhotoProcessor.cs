@@ -92,6 +92,9 @@ namespace SizePhotos
                     wand.ReadImage(srcPath);
                 }
                 
+                result.Source.Height = wand.ImageHeight;
+                result.Source.Width = wand.ImageWidth;
+                
                 wand.AutoOrientImage();
                 wand.StripImage();
                 
@@ -128,10 +131,20 @@ namespace SizePhotos
                 var path = _pathHelper.GetScaledLocalPath(target.ScaledPathSegment, jpgName);
                 uint width, height;
                 
-                tmpWand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
+                if(target.MaxWidth > 0)
+                {
+                    tmpWand.GetLargestDimensionsKeepingAspectRatio(target.MaxWidth, target.MaxHeight, out width, out height);
+                    
+                    tmpWand.ScaleImage(width, height);
+                }
+                else
+                {
+                    width = wand.ImageWidth;
+                    height = wand.ImageHeight;
+                }
                 
+                // sharpen after potentially resizing
                 // http://www.imagemagick.org/Usage/resize/#resize_unsharp
-                tmpWand.ScaleImage(width, height);
                 tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
                 
                 if(target.AdjustQuality)
