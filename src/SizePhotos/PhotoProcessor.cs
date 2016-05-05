@@ -24,6 +24,7 @@ namespace SizePhotos
         
         
         ProcessingTarget SourceTarget { get; set; }
+        ProcessingTarget PrintTarget { get; set; }
         ProcessingTarget XsTarget { get; set; }
         ProcessingTarget SmTarget { get; set; }
         ProcessingTarget MdTarget { get; set; }
@@ -36,7 +37,8 @@ namespace SizePhotos
                               IRawConverter rawConverter, 
                               IExifReader exifReader,
                               IQualitySearcher qualitySearcher,
-                              ProcessingTarget sourceTarget, 
+                              ProcessingTarget sourceTarget,
+                              ProcessingTarget printTarget,  
                               ProcessingTarget xsTarget, 
                               ProcessingTarget smTarget, 
                               ProcessingTarget mdTarget, 
@@ -51,6 +53,7 @@ namespace SizePhotos
             _qualitySearcher = qualitySearcher;
             
             SourceTarget = sourceTarget;
+            PrintTarget = printTarget;
             XsTarget = xsTarget;
             SmTarget = smTarget;
             MdTarget = mdTarget;
@@ -98,12 +101,13 @@ namespace SizePhotos
                     
                     // get the best compression quality for the optimized image
                     // (best => smallest size for negligible quality loss)
-                    var quality = _qualitySearcher.GetOptimalQuality(optWand);
+                    result.CompressionQuality = (short)_qualitySearcher.GetOptimalQuality(optWand);
                     
-                    result.Xs = ProcessTarget(wand, optWand, quality, XsTarget, jpgName);
-                    result.Sm = ProcessTarget(wand, optWand, quality, SmTarget, jpgName);
-                    result.Md = ProcessTarget(wand, optWand, quality, MdTarget, jpgName);
-                    result.Lg = ProcessTarget(wand, optWand, quality, LgTarget, jpgName);
+                    result.Xs = ProcessTarget(wand, optWand, result.CompressionQuality, XsTarget, jpgName);
+                    result.Sm = ProcessTarget(wand, optWand, result.CompressionQuality, SmTarget, jpgName);
+                    result.Md = ProcessTarget(wand, optWand, result.CompressionQuality, MdTarget, jpgName);
+                    result.Lg = ProcessTarget(wand, optWand, result.CompressionQuality, LgTarget, jpgName);
+                    result.Print = ProcessTarget(wand, optWand, result.CompressionQuality, PrintTarget, jpgName);
                 }
             }
             
@@ -113,7 +117,7 @@ namespace SizePhotos
         
         ProcessedPhoto ProcessTarget(MagickWand wand, 
                                      MagickWand optimizedWand, 
-                                     uint optimizedQuality, 
+                                     short adjustedQuality, 
                                      ProcessingTarget target, 
                                      string jpgName)
         {
@@ -130,9 +134,9 @@ namespace SizePhotos
                 tmpWand.ScaleImage(width, height);
                 tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
                 
-                if(target.Optimize)
+                if(target.AdjustQuality)
                 {
-                    tmpWand.ImageCompressionQuality = optimizedQuality;
+                    tmpWand.ImageCompressionQuality = Convert.ToUInt32(adjustedQuality);
                 }
                 
                 tmpWand.WriteImage(path, true);

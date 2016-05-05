@@ -28,6 +28,9 @@ namespace SizePhotos.ResultWriters
             "lg_height",
             "lg_width",
             "lg_path",
+            "prt_height",
+            "prt_width",
+            "prt_path",
             "source_height",
             "source_width",
             "source_path",
@@ -109,8 +112,10 @@ namespace SizePhotos.ResultWriters
             // image optimizations
             "raw_conversion_mode_id",
             "sigmoidal_adjustment",
-            "saturation_adjustment"
+            "saturation_adjustment",
+            "compression_quality"
         };
+        
         
         public SqlUpdateWriter(string outputFile)
         {
@@ -205,6 +210,9 @@ namespace SizePhotos.ResultWriters
                     result.Lg.Height.ToString(),
                     result.Lg.Width.ToString(),
                     SqlHelper.SqlString(result.Lg.WebFilePath),
+                    result.Print.Height.ToString(),
+                    result.Print.Width.ToString(),
+                    SqlHelper.SqlString(result.Print.WebFilePath),
                     result.Source.Height.ToString(),
                     result.Source.Width.ToString(),
                     SqlHelper.SqlString(result.Source.WebFilePath),
@@ -286,7 +294,8 @@ namespace SizePhotos.ResultWriters
                     // image optimizations
                     SqlHelper.SqlNumber((short?)rawResult?.Mode),
                     SqlHelper.SqlNumber(optResult?.SigmoidalOptimization),
-                    SqlHelper.SqlNumber(optResult?.SaturationOptimization)
+                    SqlHelper.SqlNumber(optResult?.SaturationOptimization),
+                    SqlHelper.SqlNumber(result.CompressionQuality)
                 };
                 
                 string[] sets = new string[_cols.Length];

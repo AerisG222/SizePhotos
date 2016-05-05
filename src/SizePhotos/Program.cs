@@ -26,6 +26,7 @@ namespace SizePhotos
         ProcessingTarget SmResizeTarget { get; set; }
         ProcessingTarget MdResizeTarget { get; set; }
         ProcessingTarget LgResizeTarget { get; set; }
+        ProcessingTarget PrintResizeTarget { get; set; }
         List<ProcessingTarget> ResizeTargetList { get; } = new List<ProcessingTarget>();
         
         
@@ -103,25 +104,29 @@ namespace SizePhotos
         void PrepareResizeTargets()
         {
             // original untouched image
-            SourceResizeTarget = GetResizeTarget("src", 0, 0, false);
+            SourceResizeTarget = GetResizeTarget("src", 0, 0, false, false);
+            
+            // optimized w/o qual adjustments for print
+            PrintResizeTarget = GetResizeTarget("prt", 0, 0, true, false);
             
             // scale + optimize
             // smaller images are more affected by quality, so on xs we force them
             // to save at higher quality if needed
-            XsResizeTarget = GetResizeTarget("xs", 120, 160, true);
-            SmResizeTarget = GetResizeTarget("sm", 480, 640, true);
-            MdResizeTarget = GetResizeTarget("md", 768, 1024, true);
-            LgResizeTarget = GetResizeTarget("lg", 0, 0, true);
+            XsResizeTarget = GetResizeTarget("xs", 120, 160, true, true);
+            SmResizeTarget = GetResizeTarget("sm", 480, 640, true, true);
+            MdResizeTarget = GetResizeTarget("md", 768, 1024, true, true);
+            LgResizeTarget = GetResizeTarget("lg", 0, 0, true, true);
         }
         
         
-        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize)
+        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize, bool adjustQuality)
         {
             return new ProcessingTarget {
                 ScaledPathSegment = pathSegment,
                 MaxHeight = maxHeight,
                 MaxWidth = maxWidth,
-                Optimize = optimize
+                Optimize = optimize,
+                AdjustQuality = adjustQuality
             };
         }
         
@@ -130,6 +135,7 @@ namespace SizePhotos
         {
             var targets = new List<ProcessingTarget> { 
                 SourceResizeTarget,
+                PrintResizeTarget,
                 XsResizeTarget,
                 SmResizeTarget,
                 MdResizeTarget,
@@ -190,6 +196,7 @@ namespace SizePhotos
                                           new ExifReader(_opts.Quiet), 
                                           new QualitySearcher(_opts.Quiet),
                                           SourceResizeTarget, 
+                                          PrintResizeTarget,
                                           XsResizeTarget, 
                                           SmResizeTarget, 
                                           MdResizeTarget, 
