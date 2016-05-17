@@ -18,6 +18,7 @@
         "CommandLineParser": "2.0.275-*",
         "NDCRaw": "0.2.1",
         "NExifTool": "0.4.2",
+        "NImgmin": "0.1.0",
         "NMagickWand": "0.3.7"
     },
     "frameworks": {
