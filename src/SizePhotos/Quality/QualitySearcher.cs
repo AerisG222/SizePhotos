@@ -37,7 +37,12 @@ namespace SizePhotos.Quality
                     wand.WriteImage(tmp, true);
                 }
                 
-                var imgmin = new Imgmin(new ImgminOptions());
+                var opts = new ImgminOptions
+                {
+                    ErrorThreshold = 0.08
+                };
+                
+                var imgmin = new Imgmin(opts);
                 var result = imgmin.Minify(tmp, tmp);
             
                 if(!_quiet)
@@ -45,7 +50,14 @@ namespace SizePhotos.Quality
                     Console.WriteLine(result.StandardOutput);
                 }
                 
-                return Convert.ToUInt32(result.StatsAfter.Quality);
+                // the following has not been reliable, so figure out the 
+                // quality based on opening the tmp file.
+                //return Convert.ToUInt32(result.StatsAfter.Quality);
+                
+                using(var qualWand = new MagickWand(tmp))
+                {
+                    return qualWand.ImageCompressionQuality;
+                }
             }
             finally
             {
