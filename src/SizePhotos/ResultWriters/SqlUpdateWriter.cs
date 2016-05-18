@@ -31,9 +31,9 @@ namespace SizePhotos.ResultWriters
             "prt_height",
             "prt_width",
             "prt_path",
-            "source_height",
-            "source_width",
-            "source_path",
+            "src_height",
+            "src_width",
+            "src_path",
             // exif
             "bits_per_sample",
             "compression_id",
