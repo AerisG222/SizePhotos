@@ -25,29 +25,24 @@ namespace SizePhotos.Optimizer
         
         public IOptimizationResult Optimize(MagickWand wand)
         {
-            double mean, stddev;
-            double quantumRange = MagickWandEnvironment.QuantumRange;
             var result = new OptimizationResult();
             
             wand.AutoLevelImage();
+            
+            AdjustSaturation(wand, result);
+            AdjustBrightness(wand, result);
+            
+            return result;
+        }
+        
+        
+        void AdjustSaturation(MagickWand wand, OptimizationResult result)
+        {
+            double mean, stddev;
+
             wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
             
-            var sigmoidalBrightnessAdjustment = GetSigmoidalAdjustment(mean, mean / quantumRange);
-            var saturationAdjustment = GetSaturationAdjustment(stddev, stddev / quantumRange);
-            
-            // adjust brightness using sigmoidal contrast so we don't blow highlights, like we sometimes
-            // would do when we tried to adjust using the brightness parameter of ModulateImage
-            if(sigmoidalBrightnessAdjustment > 1d)
-            {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"adjusting sigmoidal: {sigmoidalBrightnessAdjustment}");
-                }
-                
-                wand.SigmoidalContrastImage(true, sigmoidalBrightnessAdjustment, 0);
-                
-                result.SigmoidalOptimization = sigmoidalBrightnessAdjustment;
-            }
+            var saturationAdjustment = GetSaturationAdjustment(stddev, stddev / MagickWandEnvironment.QuantumRange);
             
             if(saturationAdjustment > 100d)
             {
@@ -61,14 +56,40 @@ namespace SizePhotos.Optimizer
                 
                 result.SaturationOptimization = saturationAdjustment;
             }
-            
-            return result;
         }
         
         
-        public double GetSigmoidalAdjustment(double mean, double meanQuantumPercent)
+        void AdjustBrightness(MagickWand wand, OptimizationResult result)
+        {
+            double mean, stddev;
+
+            wand.GetImageChannelMean(ChannelType.AllChannels, out mean, out stddev);
+            
+            var sigmoidalBrightnessAdjustment = GetSigmoidalAdjustment(mean, mean / MagickWandEnvironment.QuantumRange);
+            
+            // adjust brightness using sigmoidal contrast so we don't blow highlights, like we sometimes
+            // would do when we tried to adjust using the brightness parameter of ModulateImage
+            if(sigmoidalBrightnessAdjustment > 1d)
+            {
+                if(!_quiet)
+                {
+                    Console.WriteLine($"adjusting sigmoidal: {sigmoidalBrightnessAdjustment}");
+                }
+                
+                wand.SigmoidalContrastImage(ChannelType.AllChannels, true, sigmoidalBrightnessAdjustment, 0);
+                
+                result.SigmoidalOptimization = sigmoidalBrightnessAdjustment;
+            }
+        }
+        
+        
+        double GetSigmoidalAdjustment(double mean, double meanQuantumPercent)
         {
             double adjustment = 0;
+            
+            // adjust pct to favor brightening
+            meanQuantumPercent -= .15;
+            meanQuantumPercent = Math.Max(0, meanQuantumPercent);
             
             if(meanQuantumPercent < THRESHOLD_DECIMAL && mean > MIN_MEAN_FOR_BRIGHTENING_ADJUSTMENT)
             {
@@ -79,7 +100,7 @@ namespace SizePhotos.Optimizer
         }
         
         
-        public double GetSaturationAdjustment(double stddev, double stddevQuantumPercent)
+        double GetSaturationAdjustment(double stddev, double stddevQuantumPercent)
         {
             double adjustment = 0;
             
