@@ -1,2 +1,2 @@
 #!/bin/bash
-dnx -p ../src/SizePhotos/project.json SizePhotos -i
+dotnet run -p ../src/SizePhotos/project.json SizePhotos -i
