@@ -1,3 +1,6 @@
+#0.3.0 (06/28/2016)
+- update to rtm / latest deps
+
 #0.2.0 (03/05/2016)
 - support creation of insert and update sql scripts
 - update set of exif data that is stored
