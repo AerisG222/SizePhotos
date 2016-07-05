@@ -113,7 +113,7 @@ namespace SizePhotos.ResultWriters
             "shutter_speed",
             // image optimizations
             "raw_conversion_mode_id",
-            "sigmoidal_adjustment",
+            "sigmoidal_contrast_adjustment",
             "saturation_adjustment",
             "compression_quality"
         };
