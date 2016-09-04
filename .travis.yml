@@ -53,5 +53,5 @@ install:
   - dotnet restore
 script:
   # Run tests
-  - cd src/SizePhotos
-  - dotnet build -c $CONFIGURATION -f $FRAMEWORK
+  # cd src/SizePhotos
+  # dotnet build -c $CONFIGURATION -f $FRAMEWORK
