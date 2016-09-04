@@ -1,5 +1,5 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md)
-[![Travis](https://img.shields.io/travis/AerisG222/SizePhotos.svg?maxAge=2592000)](https://travis-ci.org/AerisG222/SizePhotos)
+[![Travis](https://img.shields.io/travis/AerisG222/SizePhotos.svg)](https://travis-ci.org/AerisG222/SizePhotos)
 [![Coverity Scan](https://img.shields.io/coverity/scan/7996.svg)](https://scan.coverity.com/projects/aerisg222-sizephotos)
 
 # SizePhotos
