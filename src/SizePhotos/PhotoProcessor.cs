@@ -11,6 +11,7 @@ using SizePhotos.Raw;
 namespace SizePhotos
 {
     public class PhotoProcessor
+        : IPhotoProcessor
     {
         static readonly object _lockobj = new object();
         
@@ -22,14 +23,12 @@ namespace SizePhotos
         readonly IQualitySearcher _qualitySearcher;
         
         
-        
         ProcessingTarget SourceTarget { get; set; }
         ProcessingTarget PrintTarget { get; set; }
         ProcessingTarget XsTarget { get; set; }
         ProcessingTarget SmTarget { get; set; }
         ProcessingTarget MdTarget { get; set; }
         ProcessingTarget LgTarget { get; set; }
-        
         
         
         public PhotoProcessor(PhotoPathHelper pathHelper, 

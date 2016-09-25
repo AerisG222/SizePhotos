@@ -6,8 +6,12 @@ namespace SizePhotos
 {
     public class SizePhotoOptions
     {
+        [Option('f', "fast-review", HelpText = "Quick conversion to review files to keep or throw away")]
+        public bool FastReview { get; set; }
+
+
         [Option('c', "category", HelpText = "Name of the category for these photos")]
-        public string CategoryName { get; set;}
+        public string CategoryName { get; set; }
         
         
         [Option('o', "out-file", HelpText = "Path to the output SQL file that will be generated")]
@@ -59,7 +63,13 @@ namespace SizePhotos
             counter += UpdateMode ? 1 : 0;
             counter += NoOutputMode ? 1 : 0;
             
-            if(counter != 1)
+            if(FastReview)
+            {
+                // we don't need other args, populate required
+                WebPhotoRoot = "ignore";
+                NoOutputMode = true;
+            }
+            else if(counter != 1)
             {
                 yield return "Please select one and only one output mode (insert, update, or no output)";
             }
@@ -90,6 +100,11 @@ namespace SizePhotos
         
         public PhotoPathHelper GetPathHelper()
         {
+            if(FastReview)
+            {
+                return new PhotoPathHelper(LocalPhotoRoot, WebPhotoRoot, 1);
+            }
+            
             if(InsertMode)
             {
                 return new PhotoPathHelper(LocalPhotoRoot, WebPhotoRoot, Year);

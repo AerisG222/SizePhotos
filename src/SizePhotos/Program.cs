@@ -12,6 +12,7 @@ using SizePhotos.Raw;
 using SizePhotos.Exif;
 using SizePhotos.Quality;
 
+
 namespace SizePhotos
 {
     class Program
@@ -161,8 +162,17 @@ namespace SizePhotos
             var files = Directory.GetFiles(_opts.LocalPhotoRoot).ToList();
             var vpus = Environment.ProcessorCount - 1;
 
-            PrepareResizeTargets();
-            PrepareDirectories();
+            // todo: clean this up
+            if(_opts.FastReview)
+            {
+                Directory.CreateDirectory(Path.Combine(_opts.LocalPhotoRoot, "review"));
+            }
+            else
+            {
+                PrepareResizeTargets();
+                PrepareDirectories();
+            }
+
             _writer.PreProcess(_category);
             MagickWandEnvironment.Genesis();
             
@@ -190,19 +200,7 @@ namespace SizePhotos
                 Console.WriteLine($"Processing: {file}");
             }
 
-            var proc = new PhotoProcessor(_pathHelper, 
-                                          new PhotoOptimizer(_opts.Quiet), 
-                                          new RawConverter(_opts.Quiet), 
-                                          new ExifReader(_opts.Quiet), 
-                                          new QualitySearcher(_opts.Quiet),
-                                          SourceResizeTarget, 
-                                          PrintResizeTarget,
-                                          XsResizeTarget, 
-                                          SmResizeTarget, 
-                                          MdResizeTarget, 
-                                          LgResizeTarget, 
-                                          _opts.Quiet);
-                                          
+            var proc = GetProcessor();
             var result = proc.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
@@ -212,6 +210,29 @@ namespace SizePhotos
         }
         
         
+        IPhotoProcessor GetProcessor()
+        {
+            if(_opts.FastReview)
+            {
+                return new FastReviewPhotoProcessor(_pathHelper,
+                    new RawConverter(_opts.Quiet));
+            }
+
+            return new PhotoProcessor(_pathHelper, 
+                new PhotoOptimizer(_opts.Quiet), 
+                new RawConverter(_opts.Quiet), 
+                new ExifReader(_opts.Quiet), 
+                new QualitySearcher(_opts.Quiet),
+                SourceResizeTarget, 
+                PrintResizeTarget,
+                XsResizeTarget, 
+                SmResizeTarget, 
+                MdResizeTarget, 
+                LgResizeTarget, 
+                _opts.Quiet);
+        }
+
+
         static void ShowUsage(IList<string> errors = null)
         {
             var help = new HelpText();
