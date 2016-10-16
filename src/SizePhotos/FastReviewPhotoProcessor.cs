@@ -41,6 +41,7 @@ namespace SizePhotos
                 }
                 
                 wand.AutoOrientImage();
+                wand.AutoLevelImage();
                 wand.StripImage();
                 
                 var path = Path.Combine(Path.GetDirectoryName(srcFile), "review", $"{Path.GetFileNameWithoutExtension(filename)}.jpg");

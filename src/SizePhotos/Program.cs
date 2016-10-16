@@ -212,15 +212,16 @@ namespace SizePhotos
         
         IPhotoProcessor GetProcessor()
         {
+            var raw = new RawConverter(_opts.Quiet, _opts.FastReview);
+
             if(_opts.FastReview)
             {
-                return new FastReviewPhotoProcessor(_pathHelper,
-                    new RawConverter(_opts.Quiet));
+                return new FastReviewPhotoProcessor(_pathHelper, raw);
             }
 
             return new PhotoProcessor(_pathHelper, 
                 new PhotoOptimizer(_opts.Quiet), 
-                new RawConverter(_opts.Quiet), 
+                raw, 
                 new ExifReader(_opts.Quiet), 
                 new QualitySearcher(_opts.Quiet),
                 SourceResizeTarget, 

@@ -12,11 +12,13 @@ namespace SizePhotos.Raw
         : IRawConverter
     {
         readonly bool _quiet;
+        readonly bool _isReviewMode;
         
         
-        public RawConverter(bool quiet)
+        public RawConverter(bool quiet, bool isReviewMode)
         {
             _quiet = quiet;
+            _isReviewMode = isReviewMode;
         }
 
 
@@ -34,8 +36,10 @@ namespace SizePhotos.Raw
                 Quality = InterpolationQuality.Quality3,
                 HighlightMode = HighlightMode.Blend,
                 Colorspace = Colorspace.sRGB,
-                DontAutomaticallyBrighten = true
+                DontAutomaticallyBrighten = true,
+                HalfSizeColorImage = _isReviewMode
             };
+            
             var dcraw = new DCRaw(opts);
             
             result.OutputFile = (await dcraw.ConvertAsync(sourceFile)).OutputFilename;
