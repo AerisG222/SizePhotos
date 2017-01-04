@@ -1,31 +1,54 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using NImgmin;
 using NMagickWand;
 
 
-// ------------------------------------------------------------------
-// CREDITS:
-//    - my feeble attempt sucks - all credit goes to imgmin!!
-// ------------------------------------------------------------------
-namespace SizePhotos.Quality
+namespace SizePhotos.Minification
 {
-    public class QualitySearcher
-        : IQualitySearcher
+    public class JpgQualityPhotoProcessor
+        : IPhotoProcessor
     {
         const int MAX_QUALITY = 92;
         
         
-        readonly bool _quiet;
+        bool _quiet;
         
         
-        public QualitySearcher(bool quiet)
+        public JpgQualityPhotoProcessor(bool quiet)
         {
             _quiet = quiet;
         }
         
+
+        public IPhotoProcessor Clone()
+        {
+            return (IPhotoProcessor) MemberwiseClone();
+        }
+
         
-        public uint GetOptimalQuality(MagickWand wand)
+        public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
+        {
+            try
+            {
+                var result = GetOptimalQuality(ctx.Wand);
+
+                return Task.FromResult((IProcessingResult) new JpgQualityProcessingResult(true, result));
+            }
+            catch(Exception ex)
+            {
+                if(!_quiet)
+                {
+                    Console.WriteLine($"Error finding min jpg quality setting for file {ctx.SourceFile}.  Error Message: {ex.Message}");
+                }
+
+                return Task.FromResult((IProcessingResult) new JpgQualityProcessingResult(false, 0));
+            }
+        }
+
+
+        uint GetOptimalQuality(MagickWand wand)
         {
             var tmp = $"{Path.GetTempFileName()}.jpg";
             

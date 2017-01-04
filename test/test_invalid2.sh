@@ -1,2 +1,2 @@
 #!/bin/bash
-dotnet run -p ../src/SizePhotos/project.json SizePhotos -r
+dotnet ../src/SizePhotos/bin/Debug/netcoreapp1.1/SizePhotos.dll -r

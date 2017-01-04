@@ -18,19 +18,25 @@
         "run": "SizePhotos" 
     },
     "dependencies": {
-        "CommandLineParser": "2.0.275-*",
+        "System.CommandLine": "0.1.0-e170103-1",
         "NDCRaw": "0.4.0",
-        "NExifTool": "0.6.0",
+        "NExifTool": "0.6.1",
         "NImgmin": "0.3.0",
-        "NMagickWand": "0.5.0"
+        "NMagickWand": "0.5.0",
+        "NRawTherapee": "0.2.0"
     },
     "frameworks": {
-        "net451": {
-            "frameworkAssemblies": {
-                //"Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
-                "System.IO.Compression": "",
-                "System.IO.Compression.FileSystem": ""
-            }
+        "netcoreapp1.1": {
+            "dependencies": {
+                "Microsoft.NETCore.App": {
+                    "version": "1.1.0",
+                    "type": "platform"
+                }
+            },
+            "imports": [
+                "dotnet55",
+                "portable-dnxcore50+net45+win8+wp8+wpa81"
+            ]
         }
     }
 }

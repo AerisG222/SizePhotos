@@ -1,12 +1,13 @@
 using System;
+using System.Threading.Tasks;
 using NMagickWand;
 using NMagickWand.Enums;
 
 
-namespace SizePhotos.Optimizer
+namespace SizePhotos.VisualOptimization
 {
-    public class PhotoOptimizer
-        : IPhotoOptimizer
+    public class OptimizationPhotoProcessor
+        : IPhotoProcessor
     {
         // this seems to work well for both brightness and saturation
         const double THRESHOLD_DECIMAL = 0.30;
@@ -14,29 +15,51 @@ namespace SizePhotos.Optimizer
         const double MAX_SIGMOIDAL_ADJUSTMENT = 3;
         const double MAX_SATURATION_ADJUSTMENT = 20;
         
-        readonly bool _quiet;
+        bool _quiet;
         
         
-        public PhotoOptimizer(bool quiet)
+        public OptimizationPhotoProcessor(bool quiet)
         {
             _quiet = quiet;
         }
         
-        
-        public IOptimizationResult Optimize(MagickWand wand)
+
+        public IPhotoProcessor Clone()
         {
-            var result = new OptimizationResult();
-            
+            return (IPhotoProcessor) MemberwiseClone();
+        }
+
+
+        public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
+        {
+            try
+            {
+                return Task.FromResult((IProcessingResult) Optimize(ctx.Wand));
+            }
+            catch(Exception ex)
+            {
+                if(!_quiet)
+                {
+                    Console.WriteLine($"Error optimizing photo for file {ctx.SourceFile}.  Error Message: {ex.Message}");
+                }
+
+                return Task.FromResult((IProcessingResult) new OptimizationProcessingResult(false, null, null));
+            }
+        }
+
+        
+        OptimizationProcessingResult Optimize(MagickWand wand)
+        {
             wand.AutoLevelImage();
             
-            AdjustSaturation(wand, result);
-            AdjustBrightness(wand, result);
+            var sat = AdjustSaturation(wand);
+            var sig = AdjustBrightness(wand);
             
-            return result;
+            return new OptimizationProcessingResult(true, sat, sig);
         }
         
         
-        void AdjustSaturation(MagickWand wand, OptimizationResult result)
+        double? AdjustSaturation(MagickWand wand)
         {
             double mean, stddev;
 
@@ -54,12 +77,14 @@ namespace SizePhotos.Optimizer
                 // 300 = don't rotate hue
                 wand.ModulateImage(100, saturationAdjustment, 300);
                 
-                result.SaturationOptimization = saturationAdjustment;
+                return saturationAdjustment;
             }
+
+            return null;
         }
         
         
-        void AdjustBrightness(MagickWand wand, OptimizationResult result)
+        double? AdjustBrightness(MagickWand wand)
         {
             double mean, stddev;
 
@@ -78,8 +103,10 @@ namespace SizePhotos.Optimizer
                 
                 wand.SigmoidalContrastImage(ChannelType.AllChannels, true, sigmoidalBrightnessAdjustment, 0);
                 
-                result.SigmoidalOptimization = sigmoidalBrightnessAdjustment;
+                return sigmoidalBrightnessAdjustment;
             }
+
+            return null;
         }
         
         

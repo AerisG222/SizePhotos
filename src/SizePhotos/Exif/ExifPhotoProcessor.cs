@@ -10,21 +10,47 @@ using NExifTool.Enums.Gps;
 
 namespace SizePhotos.Exif
 {
-    public class ExifReader
-        : IExifReader
+    public class ExifPhotoProcessor
+        : IPhotoProcessor
     {
         const string DATE_FORMAT = "yyyy:MM:dd HH:mm:ss";
         static readonly string[] PREFERRED_SPECIFIC_GROUP_PREFIXES = new string[] { "IFD", "SubIFD1", "SubIFD0", "SubIFD" };
-        readonly bool _quiet;
+        bool _quiet;
         
         
-        public ExifReader(bool quiet)
+        public ExifPhotoProcessor(bool quiet)
         {
             _quiet = quiet;
         }
         
 
-        public async Task<ExifData> ReadExifDataAsync(string photoPath)
+        public IPhotoProcessor Clone()
+        {
+            return (IPhotoProcessor) this.MemberwiseClone();
+        }
+
+
+        public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
+        {
+            try
+            {
+                var data = await ReadExifDataAsync(ctx.SourceFile);
+                
+                return new ExifProcessingResult(true, data);
+            }
+            catch(Exception ex)
+            {
+                if(!_quiet)
+                {
+                    Console.WriteLine($"Error obtaining exif data for file {ctx.SourceFile}.  Error Message: {ex.Message}");
+                }
+
+                return new ExifProcessingResult(false, null);
+            }
+        }
+
+
+        async Task<ExifData> ReadExifDataAsync(string photoPath)
         {
             var et = new ExifTool(new ExifToolOptions { Quiet = _quiet });
             var tags = await et.GetTagsAsync(photoPath);

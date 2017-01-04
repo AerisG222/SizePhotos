@@ -1,88 +1,43 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NMagickWand;
-using SizePhotos.ResultWriters;
-using CommandLine;
-using CommandLine.Text;
-using SizePhotos.Optimizer;
-using SizePhotos.Raw;
 using SizePhotos.Exif;
-using SizePhotos.Quality;
+using SizePhotos.Minification;
+using SizePhotos.PhotoReaders;
+using SizePhotos.PhotoWriters;
+using SizePhotos.ResultWriters;
+using SizePhotos.VisualOptimization;
 
 
 namespace SizePhotos
 {
     class Program
     {
+        bool _errorsEncountered;
         readonly object _lockObj = new object();
-        readonly CategoryInfo _category;
         readonly SizePhotoOptions _opts;
         readonly PhotoPathHelper _pathHelper;
         readonly IResultWriter _writer;
-        ProcessingTarget SourceResizeTarget { get; set; }
-        ProcessingTarget XsResizeTarget { get; set; }
-        ProcessingTarget SmResizeTarget { get; set; }
-        ProcessingTarget MdResizeTarget { get; set; }
-        ProcessingTarget LgResizeTarget { get; set; }
-        ProcessingTarget PrintResizeTarget { get; set; }
-        List<ProcessingTarget> ResizeTargetList { get; } = new List<ProcessingTarget>();
+        readonly PhotoProcessingPipeline _pipeline = new PhotoProcessingPipeline();
         
         
         public Program(SizePhotoOptions opts)
         {
             _opts = opts;
             _pathHelper = _opts.GetPathHelper();
-            
-            _category = new CategoryInfo {
-                Name = _opts.CategoryName,
-                Year = _opts.Year,
-                IsPrivate = _opts.IsPrivate
-            };
-            
-            if(_opts.InsertMode)
-            {
-                _writer = new SqlInsertWriter(_opts.Outfile);
-            }
-            else if(_opts.UpdateMode)
-            {
-                _writer = new SqlUpdateWriter(_opts.Outfile);
-            }
-            else
-            {
-                _writer = new NoopWriter();
-            }
+            _writer = GetWriter();
         }
         
         
         public static void Main(string[] args)
         {
-            var parser = new Parser(config => config.HelpWriter = null);
-            var result = parser.ParseArguments<SizePhotoOptions>(args);
+            var opts = new SizePhotoOptions();
+            opts.Parse(args);
             
-            var exitCode = result.MapResult(
-                opts => 
-                {
-                    var errs = opts.ValidateOptions().ToList();
-                    
-                    if(errs.Count > 0)
-                    {
-                        ShowUsage(errs);
-                        return 1;
-                    }
-            
-                    var p = new Program(opts);
-                    p.Run();
-                    return 0;
-                },
-                errors =>
-                {
-                    ShowUsage();
-                    return 1;
-                }
-            );
+            var p = new Program(opts);
+            p.Run();
         }
                               
                               
@@ -98,60 +53,83 @@ namespace SizePhotos
                 throw new IOException(string.Concat("The specified output file, ", _opts.Outfile, ", already exists.  Please remove it before running this process."));
             }
             
+            BuildPipeline();
+            PrepareDirectories();
             ResizePhotos();
+
+            if(_errorsEncountered)
+            {
+                var sep = new string('*', 50);
+
+                Console.WriteLine(sep);
+                Console.WriteLine("** Some files had errors, please review!");
+                Console.WriteLine(sep);
+
+                Environment.Exit(1);
+            }
         }
         
-        
-        void PrepareResizeTargets()
+
+        void BuildPipeline()
         {
-            // original untouched image
-            SourceResizeTarget = GetResizeTarget("src", 0, 0, false, false);
-            
-            // optimized w/o qual adjustments for print
-            PrintResizeTarget = GetResizeTarget("prt", 0, 0, true, false);
-            
-            // scale + optimize
-            // smaller images are more affected by quality, so on xs we force them
-            // to save at higher quality if needed
-            XsResizeTarget = GetResizeTarget("xs", 120, 160, true, true);
-            SmResizeTarget = GetResizeTarget("sm", 480, 640, true, true);
-            MdResizeTarget = GetResizeTarget("md", 768, 1024, true, true);
-            LgResizeTarget = GetResizeTarget("lg", 0, 0, true, true);
+            if(_opts.FastReview)
+            {
+                // read (try raw first)
+                _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
+                _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+
+                // write
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", 0, 0, false, _pathHelper));
+
+                // terminate
+                _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+            }
+            else
+            {
+                // move source file
+                _pipeline.AddProcessor(new MovePhotoProcessor(_opts.Quiet, "src", true));
+
+                // load metadata
+                _pipeline.AddProcessor(new ExifPhotoProcessor(_opts.Quiet));
+
+                // read (try raw first)
+                _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
+                _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+
+                // visually optimize photos
+                _pipeline.AddProcessor(new OptimizationPhotoProcessor(_opts.Quiet));
+
+                // minify
+                _pipeline.AddProcessor(new JpgQualityPhotoProcessor(_opts.Quiet));
+
+                // write
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "xs", 120, 160, true, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "sm", 480, 640, true, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "md", 768, 1024, true, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", 0, 0, true, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", 0, 0, false, _pathHelper));
+
+                // terminate
+                _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+            }
         }
-        
-        
-        ProcessingTarget GetResizeTarget(string pathSegment, uint maxHeight, uint maxWidth, bool optimize, bool adjustQuality)
-        {
-            return new ProcessingTarget {
-                ScaledPathSegment = pathSegment,
-                MaxHeight = maxHeight,
-                MaxWidth = maxWidth,
-                Optimize = optimize,
-                AdjustQuality = adjustQuality
-            };
-        }
-        
-        
+
+                
         void PrepareDirectories()
         {
-            var targets = new List<ProcessingTarget> { 
-                SourceResizeTarget,
-                PrintResizeTarget,
-                XsResizeTarget,
-                SmResizeTarget,
-                MdResizeTarget,
-                LgResizeTarget
-            };
-            
-            foreach(var target in targets)
+            var outputs = _pipeline.GetOutputProcessors();
+
+            foreach(var output in outputs)
             {
-                if(Directory.Exists(_pathHelper.GetScaledLocalPath(target.ScaledPathSegment)))
+                var dir = output.OutputSubdirectory;
+
+                if(Directory.Exists(_pathHelper.GetScaledLocalPath(dir)))
                 {
                     throw new IOException("At least one of the resize directories already exist.  Please ensure you need to run this script, and if so, remove these directories.");
                 }
                 else
                 {
-                    Directory.CreateDirectory(_pathHelper.GetScaledLocalPath(target.ScaledPathSegment));
+                    Directory.CreateDirectory(_pathHelper.GetScaledLocalPath(dir));
                 }
             }
         }
@@ -162,18 +140,8 @@ namespace SizePhotos
             var files = Directory.GetFiles(_opts.LocalPhotoRoot).ToList();
             var vpus = Environment.ProcessorCount - 1;
 
-            // todo: clean this up
-            if(_opts.FastReview)
-            {
-                Directory.CreateDirectory(Path.Combine(_opts.LocalPhotoRoot, "review"));
-            }
-            else
-            {
-                PrepareResizeTargets();
-                PrepareDirectories();
-            }
+            _writer.PreProcess(_opts.CategoryInfo);
 
-            _writer.PreProcess(_category);
             MagickWandEnvironment.Genesis();
             
             if(vpus < 1)
@@ -193,69 +161,41 @@ namespace SizePhotos
         
         void ProcessPhoto(string file)
         {
-            file = Path.GetFileName(file);
-            
             if(!_opts.Quiet)
             {
-                Console.WriteLine($"Processing: {file}");
+                Console.WriteLine($"Processing: {Path.GetFileName(file)}");
             }
 
-            var proc = GetProcessor();
-            var result = proc.ProcessPhotoAsync(file).Result;
+            var result = _pipeline.ProcessPhotoAsync(file).Result;
 
             lock(_lockObj)
             {
-                _writer.AddResult(result);
+                if(result.HasErrors)
+                {
+                    _errorsEncountered = true;
+
+                    Console.WriteLine($"Error with file: {result.SourceFile}");
+                }
+                else
+                {
+                    _writer.AddResult(result);
+                }
             }
         }
         
-        
-        IPhotoProcessor GetProcessor()
-        {
-            var raw = new RawConverter(_opts.Quiet, _opts.FastReview);
 
-            if(_opts.FastReview)
+        IResultWriter GetWriter()
+        {
+            if(_opts.InsertMode)
             {
-                return new FastReviewPhotoProcessor(_pathHelper, raw);
+                return new PgsqlInsertResultWriter(_opts.Outfile);
+            }
+            else if(_opts.UpdateMode)
+            {
+                return new PgsqlUpdateResultWriter(_opts.Outfile);
             }
 
-            return new PhotoProcessor(_pathHelper, 
-                new PhotoOptimizer(_opts.Quiet), 
-                raw, 
-                new ExifReader(_opts.Quiet), 
-                new QualitySearcher(_opts.Quiet),
-                SourceResizeTarget, 
-                PrintResizeTarget,
-                XsResizeTarget, 
-                SmResizeTarget, 
-                MdResizeTarget, 
-                LgResizeTarget, 
-                _opts.Quiet);
-        }
-
-
-        static void ShowUsage(IList<string> errors = null)
-        {
-            var help = new HelpText();
-            
-            help.Heading = "SizePhotos";
-            help.AddPreOptionsLine("A tool to prepare and optimize images for display on the web.");
-            
-            // this is a little lame, but force a NotParsed<T> options result
-            // so that we can get a nice help screen.  this might be required
-            // if the passed args are valid to the parser, but not w/ custom 
-            // validation logic that runs after parsing
-            var parser = new Parser(config => config.HelpWriter = null);
-            var result = parser.ParseArguments<SizePhotoOptions>(new string[] { "--xxx" });
-            help.AddOptions(result);
-            
-            if(errors != null)
-            {
-                help.AddPostOptionsLine("Errors:");
-                help.AddPostOptionsLines(errors);
-            }
-            
-            Console.WriteLine(help.ToString());            
+            return new NoopResultWriter();
         }
     }
 }
