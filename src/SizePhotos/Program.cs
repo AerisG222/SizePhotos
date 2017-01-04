@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ namespace SizePhotos
 {
     class Program
     {
+        static readonly string[] PHOTO_EXTENSIONS = { ".jpg", ".nef" };
+
         bool _errorsEncountered;
         readonly object _lockObj = new object();
         readonly SizePhotoOptions _opts;
@@ -137,7 +140,7 @@ namespace SizePhotos
         
         void ResizePhotos()
         {
-            var files = Directory.GetFiles(_opts.LocalPhotoRoot).ToList();
+            var files = GetPhotos();
             var vpus = Environment.ProcessorCount - 1;
 
             _writer.PreProcess(_opts.CategoryInfo);
@@ -183,6 +186,15 @@ namespace SizePhotos
             }
         }
         
+
+        IEnumerable<string> GetPhotos()
+        {
+            return Directory.GetFiles(_opts.LocalPhotoRoot)
+                .Where(x => PHOTO_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+                .OrderBy(x => x)
+                .ToList();
+        }
+
 
         IResultWriter GetWriter()
         {
