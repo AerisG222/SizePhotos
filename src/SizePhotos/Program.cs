@@ -141,17 +141,12 @@ namespace SizePhotos
         void ResizePhotos()
         {
             var files = GetPhotos();
-            var vpus = Environment.ProcessorCount - 1;
+            var vpus = Math.Max(Environment.ProcessorCount - 1, 1);
 
             _writer.PreProcess(_opts.CategoryInfo);
 
             MagickWandEnvironment.Genesis();
             
-            if(vpus < 1)
-            {
-                vpus = 1;
-            }
-
             // try to leave a couple threads available for the GC
             var opts = new ParallelOptions { MaxDegreeOfParallelism = vpus };
 
