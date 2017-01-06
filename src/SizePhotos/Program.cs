@@ -116,6 +116,9 @@ namespace SizePhotos
                     _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
                 }
 
+                // strip metadata
+                _pipeline.AddProcessor(new StripMetadataPhotoProcessor());
+
                 // minify
                 _pipeline.AddProcessor(new JpgQualityPhotoProcessor(_opts.Quiet));
 
