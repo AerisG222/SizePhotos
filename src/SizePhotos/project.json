@@ -12,7 +12,8 @@
     "buildOptions": {
         "debugType": "portable",
         "emitEntryPoint": true,
-        "warningsAsErrors": true
+        "warningsAsErrors": true,
+        "copyToOutput": [ "../../pp3/*.pp3" ]
     },
     "commands": {
         "run": "SizePhotos" 
@@ -23,7 +24,7 @@
         "NExifTool": "0.6.1",
         "NImgmin": "0.3.0",
         "NMagickWand": "0.5.0",
-        "NRawTherapee": "0.2.0"
+        "NRawTherapee": "0.2.1"
     },
     "frameworks": {
         "netcoreapp1.1": {

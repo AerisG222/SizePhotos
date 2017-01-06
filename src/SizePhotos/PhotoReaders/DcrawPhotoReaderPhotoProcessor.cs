@@ -28,18 +28,12 @@ namespace SizePhotos.PhotoReaders
             return (IPhotoProcessor) MemberwiseClone();
         }
 
-
-        public bool IsRawFile(string file)
-        {
-            return file.EndsWith("nef", StringComparison.OrdinalIgnoreCase);
-        }
-        
         
         public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
         {
             string output = null;
 
-            if(IsRawFile(ctx.SourceFile))
+            if(RawHelper.IsRawFile(ctx.SourceFile))
             {
                 try
                 {
@@ -56,6 +50,7 @@ namespace SizePhotos.PhotoReaders
                     
                     ctx.Wand = wand;
 
+                    // TODO: fix 'src' hardcoding
                     var url = _pathHelper.GetScaledWebFilePath("src", Path.GetFileName(ctx.SourceFile));
 
                     return new PhotoReaderProcessingResult(true, false, wand.ImageHeight, wand.ImageWidth, url);

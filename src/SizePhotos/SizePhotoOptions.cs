@@ -18,6 +18,7 @@ namespace SizePhotos
         bool _sqlInsertMode;
         bool _sqlUpdateMode;
         bool _noOutputMode;
+        bool _legacyProcessing;
         CategoryInfo _category;
 
         public bool FastReview { get { return _fastReview; } }
@@ -31,7 +32,8 @@ namespace SizePhotos
         public bool InsertMode { get { return _sqlInsertMode; } }
         public bool UpdateMode { get { return _sqlUpdateMode; } }
         public bool NoOutputMode { get { return _noOutputMode; } }
-
+        public bool LegacyProcessing { get { return _legacyProcessing; } }
+        
 
         public CategoryInfo CategoryInfo
         {
@@ -61,6 +63,7 @@ namespace SizePhotos
                 syntax.HandleHelp = false;
 
                 syntax.DefineOption("h|help", ref _help, "help");
+                syntax.DefineOption("l|legacy-processor", ref _legacyProcessing, "Use legacy conversion process rather than latest based on RawTherapee");
                 syntax.DefineOption("f|fast-review", ref _fastReview, "Quick conversion to review files to keep or throw away");
                 syntax.DefineOption("c|category", ref _categoryName, "Name of the category for these photos");
                 syntax.DefineOption("o|out-file", ref _outFile, "Path to the output SQL file that will be generated");

@@ -41,8 +41,16 @@ namespace SizePhotos
             try
             {
                 var newPath = Path.Combine(Path.GetDirectoryName(context.SourceFile), _subdir, Path.GetFileName(context.SourceFile));
+                var pp3Path = $"{context.SourceFile}.pp3";
 
                 File.Move(context.SourceFile, newPath);
+
+                if(File.Exists(pp3Path))
+                {
+                    var newPp3Path = Path.Combine(Path.GetDirectoryName(pp3Path), _subdir, Path.GetFileName(pp3Path));
+
+                    File.Move(pp3Path, newPp3Path);
+                }
 
                 if(_updateSource)
                 {

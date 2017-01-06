@@ -77,9 +77,16 @@ namespace SizePhotos
         {
             if(_opts.FastReview)
             {
-                // read (try raw first)
-                _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
-                _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+                // read
+                if(_opts.LegacyProcessing)
+                {
+                    _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
+                    _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+                }
+                else
+                {
+                    _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+                }
 
                 // write
                 _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", 0, 0, false, _pathHelper));
@@ -95,12 +102,19 @@ namespace SizePhotos
                 // load metadata
                 _pipeline.AddProcessor(new ExifPhotoProcessor(_opts.Quiet));
 
-                // read (try raw first)
-                _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
-                _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+                // read
+                if(_opts.LegacyProcessing)
+                {
+                    _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
+                    _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
 
-                // visually optimize photos
-                _pipeline.AddProcessor(new OptimizationPhotoProcessor(_opts.Quiet));
+                    // visually optimize photos
+                    _pipeline.AddProcessor(new OptimizationPhotoProcessor(_opts.Quiet));
+                }
+                else
+                {
+                    _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+                }
 
                 // minify
                 _pipeline.AddProcessor(new JpgQualityPhotoProcessor(_opts.Quiet));
@@ -117,7 +131,7 @@ namespace SizePhotos
             }
         }
 
-                
+
         void PrepareDirectories()
         {
             var outputs = _pipeline.GetOutputProcessors();
