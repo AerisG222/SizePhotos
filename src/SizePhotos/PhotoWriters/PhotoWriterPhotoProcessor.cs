@@ -52,12 +52,7 @@ namespace SizePhotos.PhotoWriters
             }
             catch(Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error writing file for scale {_scaleName} and source photo {ctx.SourceFile}.  Error message: {ex.Message}");
-                }
-
-                return Task.FromResult((IProcessingResult) new PhotoWriterProcessingResult(false, _scaleName, 0, 0, null, null));
+                return Task.FromResult((IProcessingResult) new PhotoWriterProcessingResult($"Error writing file for scale {_scaleName}: {ex.Message}"));
             }
         }
 

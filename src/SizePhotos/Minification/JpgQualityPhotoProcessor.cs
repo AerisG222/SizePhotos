@@ -38,12 +38,7 @@ namespace SizePhotos.Minification
             }
             catch(Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error finding min jpg quality setting for file {ctx.SourceFile}.  Error Message: {ex.Message}");
-                }
-
-                return Task.FromResult((IProcessingResult) new JpgQualityProcessingResult(false, 0));
+                return Task.FromResult((IProcessingResult) new JpgQualityProcessingResult($"Error finding min jpg quality setting: {ex.Message}"));
             }
         }
 

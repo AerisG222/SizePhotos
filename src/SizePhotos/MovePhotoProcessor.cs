@@ -61,12 +61,7 @@ namespace SizePhotos
             }
             catch(Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error moving photo {context.SourceFile} to subdir {_subdir}.  Error: {ex.Message}");
-                }
-
-                return Task.FromResult((IProcessingResult) new MoveProcessingResult(false));
+                return Task.FromResult((IProcessingResult) new MoveProcessingResult($"Error moving photo to subdir {_subdir}.  Error: {ex.Message}"));
             }
         }
     }

@@ -18,7 +18,7 @@ namespace SizePhotos
     {
         static readonly string[] PHOTO_EXTENSIONS = { ".jpg", ".nef" };
 
-        bool _errorsEncountered;
+        List<ProcessingContext> _errorContexts = new List<ProcessingContext>();
         readonly object _lockObj = new object();
         readonly SizePhotoOptions _opts;
         readonly PhotoPathHelper _pathHelper;
@@ -60,7 +60,7 @@ namespace SizePhotos
             PrepareDirectories();
             ResizePhotos();
 
-            if(_errorsEncountered)
+            if(_errorContexts.Count > 0)
             {
                 var sep = new string('*', 50);
 
@@ -68,6 +68,16 @@ namespace SizePhotos
                 Console.WriteLine("** Some files had errors, please review!");
                 Console.WriteLine(sep);
 
+                foreach(var ctx in _errorContexts)
+                {
+                    Console.WriteLine(ctx.SourceFile);
+
+                    foreach(var msg in ctx.ErrorMessages)
+                    {
+                        Console.WriteLine($"  - {msg}");
+                    }
+                }
+                
                 Environment.Exit(1);
             }
         }
@@ -183,13 +193,17 @@ namespace SizePhotos
 
             var result = _pipeline.ProcessPhotoAsync(file).Result;
 
+            // additional check to clean up any wands - in particular for errors
+            if(result.Wand != null)
+            {
+                result.Wand.Dispose();
+            }
+
             lock(_lockObj)
             {
                 if(result.HasErrors)
                 {
-                    _errorsEncountered = true;
-
-                    Console.WriteLine($"Error with file: {result.SourceFile}");
+                    _errorContexts.Add(result);
                 }
                 else
                 {

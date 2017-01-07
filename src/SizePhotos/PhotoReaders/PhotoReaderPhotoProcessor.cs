@@ -34,12 +34,7 @@ namespace SizePhotos.PhotoReaders
             }
             catch (Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error trying to read file {context.SourceFile}.  Error: {ex.Message}");
-                }
-
-                return Task.FromResult((IProcessingResult) new PhotoReaderProcessingResult(false, false));
+                return Task.FromResult((IProcessingResult) new PhotoReaderProcessingResult($"Error trying to read file: {ex.Message}"));
             }
         }
 

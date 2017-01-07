@@ -38,12 +38,7 @@ namespace SizePhotos.VisualOptimization
             }
             catch(Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error optimizing photo for file {ctx.SourceFile}.  Error Message: {ex.Message}");
-                }
-
-                return Task.FromResult((IProcessingResult) new OptimizationProcessingResult(false, null, null));
+                return Task.FromResult((IProcessingResult) new OptimizationProcessingResult($"Error optimizing photo: {ex.Message}"));
             }
         }
 

@@ -37,6 +37,17 @@ namespace SizePhotos
         }
 
 
+        public IEnumerable<string> ErrorMessages
+        {
+            get
+            {
+                return _results
+                    .Where(x => !x.Successful)
+                    .Select(x => x.ErrorMessage);
+            }
+        }
+
+
         public ProcessingContext(string photoPath)
         {
             if(string.IsNullOrWhiteSpace(photoPath))

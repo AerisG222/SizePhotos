@@ -21,7 +21,7 @@ namespace SizePhotos.Minification
                 return Task.FromResult((IProcessingResult) new StripMetadataProcessingResult(true));
             }
 
-            return Task.FromResult((IProcessingResult) new StripMetadataProcessingResult(false));
+            return Task.FromResult((IProcessingResult) new StripMetadataProcessingResult("Error stripping metadata as the image/wand was null."));
         }
     }
 }

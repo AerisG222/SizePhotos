@@ -48,12 +48,7 @@ namespace SizePhotos.PhotoReaders
             }
             catch (Exception ex)
             {
-                if (!_quiet)
-                {
-                    Console.WriteLine($"Error reading file {ctx.SourceFile}.  Error Message: {ex.Message}");
-                }
-
-                return new PhotoReaderProcessingResult(false, false);
+                return new PhotoReaderProcessingResult($"Error reading file: {ex.Message}");
             }
             finally
             {

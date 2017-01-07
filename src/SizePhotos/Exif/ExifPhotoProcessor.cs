@@ -40,12 +40,7 @@ namespace SizePhotos.Exif
             }
             catch(Exception ex)
             {
-                if(!_quiet)
-                {
-                    Console.WriteLine($"Error obtaining exif data for file {ctx.SourceFile}.  Error Message: {ex.Message}");
-                }
-
-                return new ExifProcessingResult(false, null);
+                return new ExifProcessingResult($"Error obtaining exif data: {ex.Message}");
             }
         }
 

@@ -57,12 +57,7 @@ namespace SizePhotos.PhotoReaders
                 }
                 catch(Exception ex)
                 {
-                    if(!_quiet)
-                    {
-                        Console.WriteLine($"Error converting from raw for file {ctx.SourceFile}.  Error Message: {ex.Message}");
-                    }
-
-                    return new PhotoReaderProcessingResult(false, false);
+                    return new PhotoReaderProcessingResult($"Error converting raw file: {ex.Message}");
                 }
                 finally
                 {

@@ -8,6 +8,7 @@ namespace SizePhotos.PhotoReaders
         public uint Height { get; private set; }
         public uint Width { get; private set; }
         public string Url { get; private set; }
+        public string ErrorMessage { get; private set; }
 
 
         public PhotoReaderProcessingResult(bool success, bool skipped)
@@ -23,6 +24,13 @@ namespace SizePhotos.PhotoReaders
             Height = height;
             Width = width;
             Url = url;
+        }
+
+
+        public PhotoReaderProcessingResult(string errorMessage)
+        {
+            Successful = false;
+            ErrorMessage = errorMessage;
         }
     }
 }

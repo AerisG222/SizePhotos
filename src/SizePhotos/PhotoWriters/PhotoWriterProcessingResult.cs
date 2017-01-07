@@ -9,6 +9,7 @@ namespace SizePhotos.PhotoWriters
         public uint Width { get; private set; }
         public string LocalPath { get; private set; }
         public string Url { get; private set; }
+        public string ErrorMessage { get; private set; }
 
 
         public PhotoWriterProcessingResult(bool success, string scaleName, uint height, uint width, string localPath, string url)
@@ -19,6 +20,13 @@ namespace SizePhotos.PhotoWriters
             Width = width;
             LocalPath = localPath;
             Url = url;
+        }
+
+
+        public PhotoWriterProcessingResult(string errorMessage)
+        {
+            Successful = false;
+            ErrorMessage = errorMessage;
         }
     }
 }
