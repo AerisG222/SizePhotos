@@ -25,5 +25,3 @@ script:
   - dotnet restore
   - cd src/SizePhotos
   - dotnet build -c $CONFIGURATION -f netcoreapp1.1
-  - cd ../../test/SizePhotos.Tests
-  - dotnet build -c $CONFIGURATION -f netcoreapp1.1
