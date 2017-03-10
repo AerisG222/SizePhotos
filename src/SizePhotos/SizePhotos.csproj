@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Tool to prepare photos for my website</Description>
+    <AssemblyTitle>SizePhotos</AssemblyTitle>
+    <VersionPrefix>0.3.0</VersionPrefix>
+    <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>portable</DebugType>
+    <AssemblyName>SizePhotos</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>SizePhotos</PackageId>
+    <PackageTags>photography;photo;resize;scale;raw;exif</PackageTags>
+    <PackageProjectUrl>https://github.com/AerisG222/SizePhotos</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet55;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
+    <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="..\..\pp3\*.pp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="0.1.0-e170309-1" />
+    <PackageReference Include="NDCRaw" Version="0.4.0" />
+    <PackageReference Include="NExifTool" Version="0.6.1" />
+    <PackageReference Include="NImgmin" Version="0.3.0" />
+    <PackageReference Include="NMagickWand" Version="0.5.0" />
+    <PackageReference Include="NRawTherapee" Version="0.2.1" />
+  </ItemGroup>
+
+</Project>
