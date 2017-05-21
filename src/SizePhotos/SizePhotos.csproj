@@ -5,7 +5,7 @@
     <AssemblyTitle>SizePhotos</AssemblyTitle>
     <VersionPrefix>0.3.0</VersionPrefix>
     <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
     <AssemblyName>SizePhotos</AssemblyName>
@@ -14,16 +14,10 @@
     <PackageTags>photography;photo;resize;scale;raw;exif</PackageTags>
     <PackageProjectUrl>https://github.com/AerisG222/SizePhotos</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md</PackageLicenseUrl>
-    <PackageTargetFallback>$(PackageTargetFallback);dotnet55;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
-    <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="..\..\pp3\*.pp3">
+    <None Include="../../pp3/*.pp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
