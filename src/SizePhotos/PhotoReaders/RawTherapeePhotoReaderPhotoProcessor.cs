@@ -65,6 +65,7 @@ namespace SizePhotos.PhotoReaders
             var opts = new Options();
             var filename = $"{Path.GetFileNameWithoutExtension(sourceFile)}_{Guid.NewGuid().ToString("N")}.tif";
 
+            opts.RawTherapeePath = "rawtherapee-cli";
             opts.OutputFormat = new TiffOutputFormat();
             opts.OutputFile = Path.Combine(Path.GetDirectoryName(sourceFile), filename);
             
