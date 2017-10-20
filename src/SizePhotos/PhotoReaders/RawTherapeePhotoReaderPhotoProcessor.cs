@@ -5,6 +5,7 @@ using NMagickWand;
 using NRawTherapee;
 using NRawTherapee.OutputFormat;
 
+
 namespace SizePhotos.PhotoReaders
 {
     public class RawTherapeePhotoReaderPhotoProcessor

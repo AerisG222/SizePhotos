@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <Description>Tool to prepare photos for my website</Description>
     <AssemblyTitle>SizePhotos</AssemblyTitle>
@@ -15,20 +14,17 @@
     <PackageProjectUrl>https://github.com/AerisG222/SizePhotos</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md</PackageLicenseUrl>
   </PropertyGroup>
-
   <ItemGroup>
     <None Include="../../pp3/*.pp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="0.1.0-e170819-1" />
-    <PackageReference Include="NDCRaw" Version="0.4.0" />
-    <PackageReference Include="NExifTool" Version="0.6.1" />
-    <PackageReference Include="NImgmin" Version="0.3.0" />
+    <PackageReference Include="System.CommandLine" Version="0.1.0-e171017-3" />
+    <PackageReference Include="NExifTool" Version="0.7.0" />
+    <PackageReference Include="NJpegOptim" Version="0.1.0" />
+    <PackageReference Include="NJpegTran" Version="0.1.0" />
     <PackageReference Include="NMagickWand" Version="0.5.0" />
-    <PackageReference Include="NRawTherapee" Version="0.2.1" />
+    <PackageReference Include="NRawTherapee" Version="0.3.0" />
   </ItemGroup>
-
 </Project>

@@ -4,7 +4,6 @@ using SizePhotos.Exif;
 using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
-using SizePhotos.VisualOptimization;
 
 
 namespace SizePhotos.ResultWriters
@@ -111,12 +110,7 @@ namespace SizePhotos.ResultWriters
             "lens_id",
             "light_value",
             "scale_factor_35_efl",
-            "shutter_speed",
-            // image optimizations
-            "raw_conversion_mode_id",
-            "sigmoidal_contrast_adjustment",
-            "saturation_adjustment",
-            "compression_quality"
+            "shutter_speed"
         };
         
         
@@ -169,8 +163,6 @@ namespace SizePhotos.ResultWriters
             foreach(var result in _results)
             {
                 var exifData = result.GetExifResult()?.ExifData;
-                var optResult = result.GetOptimizationResult();
-                var jpgQuality = result.GetJpgQualityResult()?.MinQualitySetting;
                 
                 var xs = result.GetPhotoWriterResult("xs");
                 var sm = result.GetPhotoWriterResult("sm");
@@ -275,12 +267,7 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlLookupId("photo.lens", exifData?.LensId),
                     SqlHelper.SqlNumber(exifData?.LightValue),
                     SqlHelper.SqlNumber(exifData?.ScaleFactor35Efl),
-                    SqlHelper.SqlString(exifData?.ShutterSpeed),
-                    // image optimizations
-                    SqlHelper.SqlNumber(0),
-                    SqlHelper.SqlNumber(optResult?.SigmoidalOptimization),
-                    SqlHelper.SqlNumber(optResult?.SaturationOptimization),
-                    SqlHelper.SqlNumber(jpgQuality)
+                    SqlHelper.SqlString(exifData?.ShutterSpeed)
                 };
                 
                 _writer.WriteLine($"INSERT INTO photo.photo ({string.Join(", ", _cols)}) VALUES ({string.Join(", ", values)});");

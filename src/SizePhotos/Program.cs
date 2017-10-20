@@ -9,7 +9,6 @@ using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 using SizePhotos.ResultWriters;
-using SizePhotos.VisualOptimization;
 
 
 namespace SizePhotos
@@ -24,38 +23,38 @@ namespace SizePhotos
         readonly PhotoPathHelper _pathHelper;
         readonly IResultWriter _writer;
         readonly PhotoProcessingPipeline _pipeline = new PhotoProcessingPipeline();
-        
-        
+
+
         public Program(SizePhotoOptions opts)
         {
             _opts = opts;
             _pathHelper = _opts.GetPathHelper();
             _writer = GetWriter();
         }
-        
-        
+
+
         public static void Main(string[] args)
         {
             var opts = new SizePhotoOptions();
             opts.Parse(args);
-            
+
             var p = new Program(opts);
             p.Run();
         }
-                              
-                              
+
+
         void Run()
         {
             if(!Directory.Exists(_opts.LocalPhotoRoot))
             {
                 throw new DirectoryNotFoundException(string.Concat("The picture directory specified, ", _opts.LocalPhotoRoot, ", does not exist.  Please specify a directory containing photos."));
             }
-            
+
             if(File.Exists(_opts.Outfile))
             {
                 throw new IOException(string.Concat("The specified output file, ", _opts.Outfile, ", already exists.  Please remove it before running this process."));
             }
-            
+
             BuildPipeline();
             PrepareDirectories();
             ResizePhotos();
@@ -77,29 +76,21 @@ namespace SizePhotos
                         Console.WriteLine($"  - {msg}");
                     }
                 }
-                
+
                 Environment.Exit(1);
             }
         }
-        
+
 
         void BuildPipeline()
         {
             if(_opts.FastReview)
             {
                 // read
-                if(_opts.LegacyProcessing)
-                {
-                    _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
-                    _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-                }
-                else
-                {
-                    _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-                }
+                _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
 
                 // write
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", 0, 0, false, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", 0, 0, _pathHelper));
 
                 // terminate
                 _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
@@ -113,31 +104,23 @@ namespace SizePhotos
                 _pipeline.AddProcessor(new ExifPhotoProcessor(_opts.Quiet));
 
                 // read
-                if(_opts.LegacyProcessing)
-                {
-                    _pipeline.AddProcessor(new DcrawPhotoReaderPhotoProcessor(_opts.Quiet, _opts.FastReview, _pathHelper));
-                    _pipeline.AddProcessor(new PhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-
-                    // visually optimize photos
-                    _pipeline.AddProcessor(new OptimizationPhotoProcessor(_opts.Quiet));
-                }
-                else
-                {
-                    _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-                }
+                _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
 
                 // strip metadata
                 _pipeline.AddProcessor(new StripMetadataPhotoProcessor());
 
-                // minify
-                _pipeline.AddProcessor(new JpgQualityPhotoProcessor(_opts.Quiet));
-
                 // write
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "xs", 120, 160, true, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "sm", 480, 640, true, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "md", 768, 1024, true, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", 0, 0, true, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", 0, 0, false, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "xs", 120, 160, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "sm", 480, 640, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", 0, 0, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", 0, 0, _pathHelper));
+
+                // minify
+                _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
+                _pipeline.AddProcessor(new MinifyPhotoProcessor("sm", 72, _pathHelper));
+                _pipeline.AddProcessor(new MinifyPhotoProcessor("md", 72, _pathHelper));
+                _pipeline.AddProcessor(new MinifyPhotoProcessor("lg", 72, _pathHelper));
 
                 // terminate
                 _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
@@ -164,7 +147,7 @@ namespace SizePhotos
             }
         }
 
-        
+
         void ResizePhotos()
         {
             var files = GetPhotos();
@@ -173,17 +156,17 @@ namespace SizePhotos
             _writer.PreProcess(_opts.CategoryInfo);
 
             MagickWandEnvironment.Genesis();
-            
+
             // try to leave a couple threads available for the GC
             var opts = new ParallelOptions { MaxDegreeOfParallelism = vpus };
 
             Parallel.ForEach(files, opts, ProcessPhoto);
-            
+
             MagickWandEnvironment.Terminus();
             _writer.PostProcess();
         }
-        
-        
+
+
         void ProcessPhoto(string file)
         {
             if(!_opts.Quiet)
@@ -211,7 +194,7 @@ namespace SizePhotos
                 }
             }
         }
-        
+
 
         IEnumerable<string> GetPhotos()
         {

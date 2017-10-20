@@ -14,26 +14,24 @@ namespace SizePhotos.PhotoWriters
         string _scaleName;
         uint _maxHeight;
         uint _maxWidth;
-        bool _adjustQuality;
         PhotoPathHelper _pathHelper;
 
 
-        public string OutputSubdirectory 
-        { 
+        public string OutputSubdirectory
+        {
             get
             {
                 return _scaleName;
             }
         }
-        
 
-        public PhotoWriterPhotoProcessor(bool quiet, string scaleName, uint maxHeight, uint maxWidth, bool adjustQuality, PhotoPathHelper pathHelper)
+
+        public PhotoWriterPhotoProcessor(bool quiet, string scaleName, uint maxHeight, uint maxWidth, PhotoPathHelper pathHelper)
         {
             _quiet = quiet;
             _scaleName = scaleName;
             _maxHeight = maxHeight;
             _maxWidth = maxWidth;
-            _adjustQuality = adjustQuality;
             _pathHelper = pathHelper;
         }
 
@@ -67,7 +65,7 @@ namespace SizePhotos.PhotoWriters
             using(var tmpWand = ctx.Wand.Clone())
             {
                 uint width, height;
-                
+
                 if(_maxWidth > 0)
                 {
                     tmpWand.GetLargestDimensionsKeepingAspectRatio(_maxWidth, _maxHeight, out width, out height);
@@ -78,32 +76,14 @@ namespace SizePhotos.PhotoWriters
                     width = ctx.Wand.ImageWidth;
                     height = ctx.Wand.ImageHeight;
                 }
-                
+
                 // sharpen after potentially resizing
                 // http://www.imagemagick.org/Usage/resize/#resize_unsharp
                 tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
-                
-                AdjustQuality(ctx, tmpWand);
-                
+
                 tmpWand.WriteImage(localPath, true);
-                
+
                 return new PhotoWriterProcessingResult(true, _scaleName, tmpWand.ImageHeight, tmpWand.ImageWidth, localPath, url);
-            }
-        }
-
-
-        void AdjustQuality(ProcessingContext ctx, MagickWand wandToAdjust)
-        {
-            if(!_adjustQuality)
-            {
-                return;
-            }
-
-            var result = ctx.GetJpgQualityResult();
-
-            if(result != null && result.Successful)
-            {
-                wandToAdjust.ImageCompressionQuality = Convert.ToUInt32(result.MinQualitySetting);
             }
         }
     }
