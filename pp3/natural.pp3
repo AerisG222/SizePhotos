@@ -1,9 +1,9 @@
 [Version]
-AppVersion=4.2.1
-Version=321
+AppVersion=4.2.84
+Version=322
 
 [Exposure]
-Auto=true
+Auto=false
 Clip=0.02
 Compensation=0
 Brightness=0
@@ -148,6 +148,9 @@ VCurve=0;
 [Film Simulation]
 Enabled=false
 
+[Wavelet]
+Enabled=false
+
 [RGB Curves]
 LumaMode=false
 rCurve=0;
@@ -156,4 +159,3 @@ bCurve=0;
 
 [ColorToning]
 Enabled=false
-
