@@ -69,11 +69,15 @@ namespace SizePhotos.PhotoReaders
             opts.RawTherapeePath = "rawtherapee-cli";
             opts.OutputFormat = new TiffOutputFormat();
             opts.OutputFile = Path.Combine(Path.GetDirectoryName(sourceFile), filename);
-            
+
             if(RawHelper.IsRawFile(sourceFile))
             {
                 // default to a pre-specified profile (copy of "/usr/share/rawtherapee/profiles/Generic/Natural 1.pp3")
-                opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, "natural.pp3"));
+                // opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, "natural.pp3"));
+                opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, "auto_matched_curve_iso_low.pp3"));
+
+                // now bump the contrast and saturation a bit
+                opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, "contrast_saturation.pp3"));
             }
             else
             {
@@ -83,10 +87,10 @@ namespace SizePhotos.PhotoReaders
 
             // override the default with any customizations that *might* exist for the input
             opts.AddPerInputPp3Source();
-            
+
             var rt = new RawTherapee(opts);
             var result = await rt.ConvertAsync(sourceFile);
-            
+
             return result.OutputFilename;
         }
     }
