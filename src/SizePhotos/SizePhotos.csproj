@@ -2,9 +2,9 @@
   <PropertyGroup>
     <Description>Tool to prepare photos for my website</Description>
     <AssemblyTitle>SizePhotos</AssemblyTitle>
-    <VersionPrefix>0.3.0</VersionPrefix>
+    <VersionPrefix>0.3.1</VersionPrefix>
     <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>portable</DebugType>
     <AssemblyName>SizePhotos</AssemblyName>
@@ -20,11 +20,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="0.1.0-e171017-3" />
-    <PackageReference Include="NExifTool" Version="0.7.0" />
-    <PackageReference Include="NJpegOptim" Version="0.1.0" />
-    <PackageReference Include="NJpegTran" Version="0.1.0" />
-    <PackageReference Include="NMagickWand" Version="0.5.0" />
-    <PackageReference Include="NRawTherapee" Version="0.3.0" />
+    <PackageReference Include="System.CommandLine" Version="0.1.0-preview2-180503-2" />
+    <PackageReference Include="NExifTool" Version="0.8.3" />
+    <PackageReference Include="NJpegOptim" Version="0.1.1" />
+    <PackageReference Include="NJpegTran" Version="0.1.1" />
+    <PackageReference Include="NMagickWand" Version="0.5.1" />
+    <PackageReference Include="NRawTherapee" Version="0.3.1" />
   </ItemGroup>
 </Project>
