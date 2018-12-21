@@ -21,7 +21,7 @@ namespace SizePhotos.Exif
         public double? FocalLengthIn35mmFormat { get; set; }
         public int? GainControl { get; set; }
         public double? GpsAltitude { get; set; }
-        public short? GpsAltitudeRef { get; set; }
+        public string GpsAltitudeRef { get; set; }
         public DateTime? GpsDateStamp { get; set; }
         public double? GpsDirection { get; set; }
         public string GpsDirectionRef { get; set; }
@@ -44,7 +44,7 @@ namespace SizePhotos.Exif
         public int? SceneType { get; set; }
         public int? SensingMethod { get; set; }
         public int? Sharpness { get; set; }
-        
+
         // nikon - we must get these as strings, because we will have pictures that are not just for nikon
         //       - as such, we can't use the nikon lookup tables in all cases, so we have to manage these
         //       - as generic lookup tables instead
@@ -73,7 +73,7 @@ namespace SizePhotos.Exif
         public string VibrationReduction { get; set; }
         public string VignetteControl { get; set; }
         public string WhiteBalance { get; set; }
-        
+
         // composite
         public double? Aperture { get; set; }
         public short? AutoFocus { get; set; }

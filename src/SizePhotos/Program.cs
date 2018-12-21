@@ -101,7 +101,7 @@ namespace SizePhotos
                 _pipeline.AddProcessor(new MovePhotoProcessor(_opts.Quiet, "src", true));
 
                 // load metadata
-                _pipeline.AddProcessor(new ExifPhotoProcessor(_opts.Quiet));
+                _pipeline.AddProcessor(new ExifPhotoProcessor());
 
                 // read
                 _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));

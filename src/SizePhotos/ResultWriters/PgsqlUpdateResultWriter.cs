@@ -11,9 +11,9 @@ namespace SizePhotos.ResultWriters
         : BasePgsqlResultWriter
     {
         readonly string _file;
-        
-        
-        static readonly string[] _cols = new string[] 
+
+
+        static readonly string[] _cols = new string[]
         {
             // scaled images
             "xs_height",
@@ -98,7 +98,7 @@ namespace SizePhotos.ResultWriters
             "vibration_reduction_id",
             "vignette_control_id",
             "vr_mode_id",
-            "white_balance_id", 
+            "white_balance_id",
             // composite
             "aperture",
             "auto_focus_id",
@@ -110,55 +110,55 @@ namespace SizePhotos.ResultWriters
             "scale_factor_35_efl",
             "shutter_speed"
         };
-        
-        
+
+
         public PgsqlUpdateResultWriter(string outputFile)
         {
             _file = outputFile;
         }
-        
-        
+
+
         public override void PreProcess(CategoryInfo category)
         {
             PrepareOutputStream();
         }
-        
-        
+
+
         public override void PostProcess()
         {
             FinalizeOutputStream();
         }
-        
-        
+
+
         public override void AddResult(ProcessingContext context)
         {
             _results.Add(context);
         }
-        
-        
+
+
         void PrepareOutputStream()
         {
             _writer = new StreamWriter(new FileStream(_file, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
 
             WriteHeader();
         }
-        
-        
+
+
         void FinalizeOutputStream()
         {
             WriteResultSql();
             WriteFooter();
         }
-        
-        
+
+
         void WriteResultSql()
         {
             WriteLookups();
-            
+
             foreach(var result in _results)
             {
                 var exifData = result.GetExifResult()?.ExifData;
-                
+
                 var xs = result.GetPhotoWriterResult("xs");
                 var sm = result.GetPhotoWriterResult("sm");
                 var md = result.GetPhotoWriterResult("md");
@@ -166,8 +166,8 @@ namespace SizePhotos.ResultWriters
                 var prt = result.GetPhotoWriterResult("prt");
                 var src = result.GetSuccessfulPhotoReaderResult();
 
-                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {xs.Width}, teaser_photo_height = {xs.Height}, teaser_photo_path = {SqlHelper.SqlString(xs.Url)} WHERE teaser_photo_path = {SqlHelper.SqlString(xs.Url)};"); 
-                
+                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {xs.Width}, teaser_photo_height = {xs.Height}, teaser_photo_path = {SqlHelper.SqlString(xs.Url)} WHERE teaser_photo_path = {SqlHelper.SqlString(xs.Url)};");
+
                 var args = new string[] {
                     // scaled images
                     xs.Height.ToString(),
@@ -204,7 +204,7 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlNumber(exifData?.FocalLengthIn35mmFormat),
                     SqlHelper.SqlNumber(exifData?.GainControl),
                     SqlHelper.SqlNumber(exifData?.GpsAltitude),
-                    SqlHelper.SqlNumber(exifData?.GpsAltitudeRef),
+                    SqlHelper.SqlLookupId("photo.gps_altitude_ref", exifData?.GpsAltitudeRef),
                     SqlHelper.SqlTimestamp(exifData?.GpsDateStamp),
                     SqlHelper.SqlNumber(exifData?.GpsDirection),
                     SqlHelper.SqlString(exifData?.GpsDirectionRef),
@@ -264,14 +264,14 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlNumber(exifData?.ScaleFactor35Efl),
                     SqlHelper.SqlString(exifData?.ShutterSpeed)
                 };
-                
+
                 string[] sets = new string[_cols.Length];
-                 
+
                 for(int i = 0; i < _cols.Length; i++)
                 {
                     sets[i] = $"{_cols[i]} = {args[i]}";
                 }
-                
+
                 _writer.WriteLine($"UPDATE photo.photo SET {string.Join(", ", sets)} WHERE lg_path = {SqlHelper.SqlString(lg.Url)};");
                 _writer.WriteLine();
             }

@@ -1,30 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>Tool to prepare photos for my website</Description>
-    <AssemblyTitle>SizePhotos</AssemblyTitle>
-    <VersionPrefix>0.3.1</VersionPrefix>
-    <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DebugType>portable</DebugType>
-    <AssemblyName>SizePhotos</AssemblyName>
-    <OutputType>Exe</OutputType>
-    <PackageId>SizePhotos</PackageId>
-    <PackageTags>photography;photo;resize;scale;raw;exif</PackageTags>
-    <PackageProjectUrl>https://github.com/AerisG222/SizePhotos</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md</PackageLicenseUrl>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="../../pp3/*.pp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="0.1.0-preview2-180503-2" />
-    <PackageReference Include="NExifTool" Version="0.8.3" />
-    <PackageReference Include="NJpegOptim" Version="0.1.1" />
-    <PackageReference Include="NJpegTran" Version="0.1.1" />
-    <PackageReference Include="NMagickWand" Version="0.5.1" />
-    <PackageReference Include="NRawTherapee" Version="0.3.1" />
-  </ItemGroup>
+    <PropertyGroup>
+        <Description>Tool to prepare photos for my website</Description>
+        <AssemblyTitle>SizePhotos</AssemblyTitle>
+        <VersionPrefix>0.4.0</VersionPrefix>
+        <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <DebugType>portable</DebugType>
+        <AssemblyName>SizePhotos</AssemblyName>
+        <OutputType>Exe</OutputType>
+        <PackageId>SizePhotos</PackageId>
+        <PackageTags>photography;photo;resize;scale;raw;exif</PackageTags>
+        <PackageProjectUrl>https://github.com/AerisG222/SizePhotos</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/AerisG222/SizePhotos/blob/master/LICENSE.md</PackageLicenseUrl>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../pp3/*.pp3">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.CommandLine" Version="0.1.0-preview2-180503-2" />
+        <PackageReference Include="NExifTool" Version="0.9.0-beta" />
+        <PackageReference Include="NJpegOptim" Version="0.1.1" />
+        <PackageReference Include="NJpegTran" Version="0.1.1" />
+        <PackageReference Include="NMagickWand" Version="0.5.1" />
+        <PackageReference Include="NRawTherapee" Version="0.3.1" />
+    </ItemGroup>
 </Project>

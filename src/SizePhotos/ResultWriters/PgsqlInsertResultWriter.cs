@@ -13,7 +13,7 @@ namespace SizePhotos.ResultWriters
     {
         readonly string _file;
         CategoryInfo _category;
-        static readonly string[] _cols = new string[] 
+        static readonly string[] _cols = new string[]
         {
             "category_id",
             "is_private",
@@ -100,7 +100,7 @@ namespace SizePhotos.ResultWriters
             "vibration_reduction_id",
             "vignette_control_id",
             "vr_mode_id",
-            "white_balance_id", 
+            "white_balance_id",
             // composite
             "aperture",
             "auto_focus_id",
@@ -112,48 +112,48 @@ namespace SizePhotos.ResultWriters
             "scale_factor_35_efl",
             "shutter_speed"
         };
-        
-        
+
+
         public PgsqlInsertResultWriter(string outputFile)
         {
             _file = outputFile;
         }
-        
-        
+
+
         public override void PreProcess(CategoryInfo category)
         {
             _category = category;
             PrepareOutputStream();
         }
-        
-        
+
+
         public override void PostProcess()
         {
             FinalizeOutputStream();
         }
-        
-        
+
+
         public override void AddResult(ProcessingContext ctx)
         {
             _results.Add(ctx);
         }
-        
-        
+
+
         void PrepareOutputStream()
         {
             _writer = new StreamWriter(new FileStream(_file, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
-            
+
             WriteHeader();
         }
-        
-        
+
+
         void FinalizeOutputStream()
         {
             WriteResultSql();
             WriteFooter();
         }
-        
-        
+
+
         void WriteResultSql()
         {
             WriteCategoryCreate();
@@ -163,7 +163,7 @@ namespace SizePhotos.ResultWriters
             foreach(var result in _results)
             {
                 var exifData = result.GetExifResult()?.ExifData;
-                
+
                 var xs = result.GetPhotoWriterResult("xs");
                 var sm = result.GetPhotoWriterResult("sm");
                 var md = result.GetPhotoWriterResult("md");
@@ -209,7 +209,7 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlNumber(exifData?.FocalLengthIn35mmFormat),
                     SqlHelper.SqlNumber(exifData?.GainControl),
                     SqlHelper.SqlNumber(exifData?.GpsAltitude),
-                    SqlHelper.SqlNumber(exifData?.GpsAltitudeRef),
+                    SqlHelper.SqlLookupId("photo.gps_altitude_ref", exifData?.GpsAltitudeRef),
                     SqlHelper.SqlTimestamp(exifData?.GpsDateStamp),
                     SqlHelper.SqlNumber(exifData?.GpsDirection),
                     SqlHelper.SqlString(exifData?.GpsDirectionRef),
@@ -269,14 +269,14 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlNumber(exifData?.ScaleFactor35Efl),
                     SqlHelper.SqlString(exifData?.ShutterSpeed)
                 };
-                
+
                 _writer.WriteLine($"INSERT INTO photo.photo ({string.Join(", ", _cols)}) VALUES ({string.Join(", ", values)});");
             }
-            
+
             _writer.WriteLine();
         }
-        
-        
+
+
         void WriteCategoryCreate()
         {
             var result = _results.First();

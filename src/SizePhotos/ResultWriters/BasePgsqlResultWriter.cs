@@ -21,7 +21,7 @@ namespace SizePhotos.ResultWriters
         {
             _writer.WriteLine("END");
             _writer.WriteLine("$$");
-            
+
             _writer.Flush();
             _writer.Dispose();
             _writer = null;
@@ -55,6 +55,8 @@ namespace SizePhotos.ResultWriters
             WriteLookups("photo.vignette_control", exifDataList.Select(x => x.ExifData.VignetteControl).Distinct());
             WriteLookups("photo.vr_mode", exifDataList.Select(x => x.ExifData.VRMode).Distinct());
             WriteLookups("photo.white_balance", exifDataList.Select(x => x.ExifData.WhiteBalance).Distinct());
+
+            WriteLookups("photo.gps_altitude_ref", exifDataList.Select(x => x.ExifData.GpsAltitudeRef).Distinct());
         }
 
 
@@ -63,7 +65,7 @@ namespace SizePhotos.ResultWriters
             foreach(string val in values)
             {
                 var lookup = SqlHelper.SqlCreateLookup(table, val);
-                
+
                 if(!string.IsNullOrWhiteSpace(lookup))
                 {
                     _writer.WriteLine(lookup);
