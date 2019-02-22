@@ -90,7 +90,7 @@ namespace SizePhotos
                 _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
 
                 // write
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", 0, 0, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", _pathHelper));
 
                 // terminate
                 _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
@@ -110,12 +110,12 @@ namespace SizePhotos
                 _pipeline.AddProcessor(new StripMetadataPhotoProcessor());
 
                 // write
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "xs", 120, 160, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "sm", 480, 640, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", 0, 0, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", 0, 0, _pathHelper));
                 _pipeline.AddProcessor(new PhotoWriterFixedSizePhotoProcessor(_opts.Quiet, "xs_sq", 120, 160, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "xs", 120, 160, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "sm", 480, 640, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", _pathHelper));
 
                 // minify
                 _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
