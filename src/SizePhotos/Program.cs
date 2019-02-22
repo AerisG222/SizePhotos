@@ -115,6 +115,7 @@ namespace SizePhotos
                 _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
                 _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", 0, 0, _pathHelper));
                 _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", 0, 0, _pathHelper));
+                _pipeline.AddProcessor(new PhotoWriterFixedSizePhotoProcessor(_opts.Quiet, "xs_sq", 120, 160, _pathHelper));
 
                 // minify
                 _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
