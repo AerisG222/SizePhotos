@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using SizePhotos.Exif;
 using SizePhotos.Minification;
@@ -163,6 +164,10 @@ namespace SizePhotos.ResultWriters
 
         void WriteResultSql()
         {
+            throw new NotImplementedException("Sorry, I was lazy.  If you want to run an update, please add the necessary logic to update the category after photos are updated (i.e. sizes).  " +
+                                              "Also fix the logic below (why is the category updated each time through the loop?");
+
+            /*
             WriteLookups();
 
             foreach(var result in _results)
@@ -303,7 +308,9 @@ namespace SizePhotos.ResultWriters
 
                 _writer.WriteLine($"UPDATE photo.photo SET {string.Join(", ", sets)} WHERE lg_path = {SqlHelper.SqlString(lg.Url)};");
                 _writer.WriteLine();
+
             }
+                */
         }
     }
 }
