@@ -18,21 +18,31 @@ namespace SizePhotos.ResultWriters
             // scaled images
             "xs_height",
             "xs_width",
+            "xs_size",
             "xs_path",
+            "xs_sq_height",
+            "xs_sq_width",
+            "xs_sq_size",
+            "xs_sq_path",
             "sm_height",
             "sm_width",
+            "sm_size",
             "sm_path",
             "md_height",
             "md_width",
+            "md_size",
             "md_path",
             "lg_height",
             "lg_width",
+            "lg_size",
             "lg_path",
             "prt_height",
             "prt_width",
+            "prt_size",
             "prt_path",
             "src_height",
             "src_width",
+            "src_size",
             "src_path",
             // exif
             "bits_per_sample",
@@ -159,6 +169,7 @@ namespace SizePhotos.ResultWriters
             {
                 var exifData = result.GetExifResult()?.ExifData;
 
+                var xsSq = result.GetPhotoWriterResult("xs_sq");
                 var xs = result.GetPhotoWriterResult("xs");
                 var sm = result.GetPhotoWriterResult("sm");
                 var md = result.GetPhotoWriterResult("md");
@@ -166,27 +177,45 @@ namespace SizePhotos.ResultWriters
                 var prt = result.GetPhotoWriterResult("prt");
                 var src = result.GetSuccessfulPhotoReaderResult();
 
-                _writer.WriteLine($"UPDATE photo.category SET teaser_photo_width = {xs.Width}, teaser_photo_height = {xs.Height}, teaser_photo_path = {SqlHelper.SqlString(xs.Url)} WHERE teaser_photo_path = {SqlHelper.SqlString(xs.Url)};");
+                _writer.WriteLine($"UPDATE photo.category " +
+                                  $"   SET teaser_photo_width = {xs.Width}, " +
+                                  $"       teaser_photo_height = {xs.Height}, " +
+                                  $"       teaser_photo_size = {xs.FileSize}, " +
+                                  $"       teaser_photo_path = {SqlHelper.SqlString(xs.Url)} WHERE teaser_photo_path = {SqlHelper.SqlString(xs.Url)}, " +
+                                  $"       teaser_photo_sq_width = {xsSq.Width}, " +
+                                  $"       teaser_photo_sq_height = {xsSq.Height}, " +
+                                  $"       teaser_photo_sq_size = {xsSq.FileSize}, " +
+                                  $"       teaser_photo_sq_path = {SqlHelper.SqlString(xsSq.Url)} WHERE teaser_photo_path = {SqlHelper.SqlString(xs.Url)};");
 
                 var args = new string[] {
                     // scaled images
                     xs.Height.ToString(),
                     xs.Width.ToString(),
+                    xs.FileSize.ToString(),
                     SqlHelper.SqlString(xs.Url),
+                    xsSq.Height.ToString(),
+                    xsSq.Width.ToString(),
+                    xsSq.FileSize.ToString(),
+                    SqlHelper.SqlString(xsSq.Url),
                     sm.Height.ToString(),
                     sm.Width.ToString(),
+                    sm.FileSize.ToString(),
                     SqlHelper.SqlString(sm.Url),
                     md.Height.ToString(),
                     md.Width.ToString(),
+                    md.FileSize.ToString(),
                     SqlHelper.SqlString(md.Url),
                     lg.Height.ToString(),
                     lg.Width.ToString(),
+                    lg.FileSize.ToString(),
                     SqlHelper.SqlString(lg.Url),
                     prt.Height.ToString(),
                     prt.Width.ToString(),
+                    prt.FileSize.ToString(),
                     SqlHelper.SqlString(prt.Url),
                     src.Height.ToString(),
                     src.Width.ToString(),
+                    src.FileSize.ToString(),
                     SqlHelper.SqlString(src.Url),
                     // exif
                     SqlHelper.SqlNumber(exifData?.BitsPerSample),

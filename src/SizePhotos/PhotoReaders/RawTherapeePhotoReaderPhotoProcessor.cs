@@ -45,7 +45,9 @@ namespace SizePhotos.PhotoReaders
                 // TODO: fix 'src' hardcoding
                 var url = _pathHelper.GetScaledWebFilePath("src", Path.GetFileName(ctx.SourceFile));
 
-                return new PhotoReaderProcessingResult(true, false, wand.ImageHeight, wand.ImageWidth, url);
+                var file = new FileInfo(ctx.SourceFile);
+
+                return new PhotoReaderProcessingResult(true, false, wand.ImageHeight, wand.ImageWidth, file.Length, url);
             }
             catch (Exception ex)
             {

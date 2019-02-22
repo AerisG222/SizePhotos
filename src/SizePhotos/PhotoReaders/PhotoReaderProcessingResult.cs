@@ -7,6 +7,7 @@ namespace SizePhotos.PhotoReaders
         public bool Skipped { get; private set; }
         public uint Height { get; private set; }
         public uint Width { get; private set; }
+        public long FileSize { get; private set; }
         public string Url { get; private set; }
         public string ErrorMessage { get; private set; }
 
@@ -18,12 +19,13 @@ namespace SizePhotos.PhotoReaders
         }
 
 
-        public PhotoReaderProcessingResult(bool success, bool skipped, uint height, uint width, string url)
+        public PhotoReaderProcessingResult(bool success, bool skipped, uint height, uint width, long fileSize, string url)
             : this(success, skipped)
         {
             Height = height;
             Width = width;
             Url = url;
+            FileSize = fileSize;
         }
 
 

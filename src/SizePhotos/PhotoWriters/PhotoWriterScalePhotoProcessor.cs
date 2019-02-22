@@ -73,7 +73,9 @@ namespace SizePhotos.PhotoWriters
 
                 tmpWand.WriteImage(localPath, true);
 
-                return new PhotoWriterProcessingResult(true, _scaleName, tmpWand.ImageHeight, tmpWand.ImageWidth, localPath, url);
+                var file = new FileInfo(localPath);
+
+                return new PhotoWriterProcessingResult(true, _scaleName, tmpWand.ImageHeight, tmpWand.ImageWidth, file.Length, localPath, url);
             }
         }
     }
