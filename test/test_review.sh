@@ -1,2 +1,2 @@
 #!/bin/bash
-dotnet ../src/SizePhotos/bin/Debug/netcoreapp1.1/SizePhotos.dll -f -p testfiles
+dotnet ../src/SizePhotos/bin/Debug/netcoreapp2.2/SizePhotos.dll -f -p testfiles
