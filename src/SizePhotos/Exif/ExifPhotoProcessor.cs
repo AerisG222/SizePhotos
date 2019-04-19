@@ -58,7 +58,7 @@ namespace SizePhotos.Exif
                 GpsAltitudeRef = tags.SingleOrDefaultPrimaryTag("GPSAltitudeRef")?.Value,
                 GpsDateStamp = tags.SingleOrDefaultPrimaryTag("GPSDateStamp")?.TryGetDateTime(),
                 GpsDirection = tags.SingleOrDefaultPrimaryTag("GPSImgDirection")?.TryGetDouble(),
-                GpsDirectionRef = tags.SingleOrDefaultPrimaryTag("GPSImgDirectionRef")?.Value,
+                GpsDirectionRef = tags.SingleOrDefaultPrimaryTag("GPSImgDirectionRef")?.NumberValue,
                 GpsLatitude = tags.SingleOrDefaultPrimaryTag("GPSLatitude")?.TryGetDouble(),
                 GpsLatitudeRef = tags.SingleOrDefaultPrimaryTag("GPSLatitudeRef")?.Value?.Substring(0, 1),
                 GpsLongitude = tags.SingleOrDefaultPrimaryTag("GPSLongitude")?.TryGetDouble(),
