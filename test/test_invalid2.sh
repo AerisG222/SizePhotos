@@ -1,2 +1,2 @@
 #!/bin/bash
-dotnet ../src/SizePhotos/bin/Debug/netcoreapp2.2/SizePhotos.dll -r
+dotnet ../src/SizePhotos/bin/Debug/net5.0/SizePhotos.dll -r
