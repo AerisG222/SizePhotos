@@ -1,37 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
-
+using System.CommandLine.Invocation;
+using System.IO;
+using System.Linq;
 
 namespace SizePhotos
 {
     public class SizePhotoOptions
     {
-        bool _help;
-        bool _fastReview;
-        string _categoryName;
-        string _outFile;
-        string _photoDirectory;
-        string _webPhotoRoot;
-        bool _isPrivate;
-        int _year;
-        bool _quiet;
-        bool _sqlInsertMode;
-        bool _sqlUpdateMode;
-        bool _noOutputMode;
         CategoryInfo _category;
 
-        public bool FastReview { get { return _fastReview; } }
-        public string CategoryName { get { return _categoryName; } }
-        public string Outfile { get { return _outFile; } }
-        public string LocalPhotoRoot { get { return _photoDirectory; } }
-        public string WebPhotoRoot { get { return _webPhotoRoot; } }
-        public bool IsPrivate { get { return _isPrivate; } }
-        public ushort Year { get { return (ushort)_year; } }
-        public bool Quiet { get { return _quiet; } }
-        public bool InsertMode { get { return _sqlInsertMode; } }
-        public bool UpdateMode { get { return _sqlUpdateMode; } }
-        public bool NoOutputMode { get { return _noOutputMode; } }
-        
+        public bool FastReview { get; private set; }
+        public string CategoryName { get; private set; }
+        public string Outfile { get; private set; }
+        public string LocalPhotoRoot { get; private set; }
+        public string WebPhotoRoot { get; private set; }
+        public bool IsPrivate { get; private set; }
+        public ushort Year { get; private set; }
+        public bool Quiet { get; private set; }
+        public bool InsertMode { get; private set; }
+        public bool UpdateMode { get; private set; }
+        public bool NoOutputMode { get; private set; }
 
         public CategoryInfo CategoryInfo
         {
@@ -51,46 +41,105 @@ namespace SizePhotos
             }
         }
 
-
         public void Parse(string[] args)
         {
-            ArgumentSyntax.Parse(args, syntax =>
+            var rootCommand = BuildRootCommand();
+
+            rootCommand.Invoke(args);
+
+            var errors = ValidateOptions();
+
+            if(errors.Any())
             {
-                syntax.ApplicationName = "SizePhotos";
+                Console.WriteLine("Errors processing options:");
 
-                syntax.HandleHelp = false;
-
-                syntax.DefineOption("h|help", ref _help, "help");
-                syntax.DefineOption("f|fast-review", ref _fastReview, "Quick conversion to review files to keep or throw away");
-                syntax.DefineOption("c|category", ref _categoryName, "Name of the category for these photos");
-                syntax.DefineOption("o|out-file", ref _outFile, "Path to the output SQL file that will be generated");
-                syntax.DefineOption("p|photo-dir", ref _photoDirectory, "Directory containing the source photos");
-                syntax.DefineOption("w|web-photo-root", ref _webPhotoRoot, "URL path to the root photos directory, ex: images");
-                syntax.DefineOption("x|private", ref _isPrivate, "Mark the category as private");
-                syntax.DefineOption("y|year", ref _year, "Year the pictures were taken");
-                syntax.DefineOption("q|quiet", ref _quiet, "Be quiet and do not emit status messages");
-                syntax.DefineOption("i|sql-insert-mode", ref _sqlInsertMode, "Generate an insert script");  // SetName = "OutputMode"
-                syntax.DefineOption("u|sql-update-mode", ref _sqlUpdateMode, "Generate an update script (based on lg filepath)"); // SetName = "OutputMode"
-                syntax.DefineOption("n|no-output-mode", ref _noOutputMode, "Do not generate an output file, useful when reprocessing"); // SetName = "OutputMode"
-
-                if(_help)
+                foreach(var err in errors)
                 {
-                    Console.WriteLine(syntax.GetHelpText());
-                    Environment.Exit(0);
+                    Console.WriteLine($"  - {err}");
                 }
-                else
-                {
-                    ValidateOptions(syntax);
-                }
-            });
+
+                Console.WriteLine("Exiting");
+
+                Environment.Exit(1);
+            }
         }
 
+        RootCommand BuildRootCommand()
+        {
+            var rootCommand = new RootCommand
+            {
+                new Option<bool>(
+                    new string[] {"-f", "--fast-review"},
+                    "Quick conversion to review files to keep or throw away"
+                ),
+                new Option<string>(
+                    new string[] {"-c", "--category"},
+                    "Name of the category for these photos"
+                ),
+                new Option<string>(
+                    new string[] {"-o", "--out-file"},
+                    "Path to the output SQL file that will be generated"
+                ),
+                new Option<string>(
+                    new string[] {"-p", "--photo-dir"},
+                    "Directory containing the source photos"
+                ),
+                new Option<string>(
+                    new string[] {"-w", "--web-photo-root"},
+                    "URL path to the root photos directory, ex: images"
+                ),
+                new Option<bool>(
+                    new string[] {"-x", "--private"},
+                    "Mark the category as private"
+                ),
+                new Option<ushort>(
+                    new string[] {"-y", "--year"},
+                    "Year the pictures were taken"
+                ),
+                new Option<bool>(
+                    new string[] {"-q", "--quiet"},
+                    "Be quiet and do not emit status messages"
+                ),
+                new Option<bool>(
+                    new string[] {"-i", "--sql-insert-mode"},
+                    "Generate an insert script"  // SetName = "OutputMode"
+                ),
+                new Option<bool>(
+                    new string[] {"-u", "--sql-update-mode"},
+                    "Generate an update script (based on lg filepath)" // SetName = "OutputMode"
+                ),
+                new Option<bool>(
+                    new string[] {"-n", "--no-output-mode"},
+                    "Do not generate an output file, useful when reprocessing" // SetName = "OutputMode"
+                ),
+            };
 
-        public void ValidateOptions(ArgumentSyntax syntax)
+            rootCommand.Description = "A utility to prepare photos to be shown on mikeandwan.us";
+
+            rootCommand.Handler = CommandHandler.Create<bool, string, string, string, string, bool, ushort, bool, bool, bool, bool>(
+                (fastReview, categoryName, outFile, photoDir, webPhotoRoot, isPrivate, year, isQuiet, isSqlInsertMode, isSqlUpdateMode, isNoUpdateMode) => {
+                    FastReview = fastReview;
+                    CategoryName = categoryName;
+                    Outfile = Outfile;
+                    LocalPhotoRoot = photoDir;
+                    WebPhotoRoot = webPhotoRoot;
+                    IsPrivate = isPrivate;
+                    Year = year;
+                    Quiet = isQuiet;
+                    InsertMode = isSqlInsertMode;
+                    UpdateMode = isSqlUpdateMode;
+                    NoOutputMode = isNoUpdateMode;
+                }
+            );
+
+            return rootCommand;
+        }
+
+        IEnumerable<string> ValidateOptions()
         {
             if (string.IsNullOrWhiteSpace(LocalPhotoRoot))
             {
-                syntax.ReportError("Please specify the local path containing the photos to process");
+                yield return "Please specify the local path containing the photos to process";
             }
 
             var counter = 0;
@@ -102,37 +151,36 @@ namespace SizePhotos
             if (FastReview)
             {
                 // we don't need other args, populate required
-                _webPhotoRoot = "ignore";
-                _noOutputMode = true;
+                WebPhotoRoot = "ignore";
+                NoOutputMode = true;
             }
             else if (counter != 1)
             {
-                syntax.ReportError("Please select one and only one output mode (insert, update, or no output)");
+                yield return "Please select one and only one output mode (insert, update, or no output)";
             }
             else
             {
                 if ((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(WebPhotoRoot))
                 {
-                    syntax.ReportError("Please specify the web root path");
+                    yield return "Please specify the web root path";
                 }
 
                 if ((InsertMode || UpdateMode) && string.IsNullOrWhiteSpace(Outfile))
                 {
-                    syntax.ReportError("Please provide the name of the output file to write to");
+                    yield return "Please provide the name of the output file to write to";
                 }
 
                 if (InsertMode && string.IsNullOrWhiteSpace(CategoryName))
                 {
-                    syntax.ReportError("Please provide a category name, as it is required for insert mode");
+                    yield return "Please provide a category name, as it is required for insert mode";
                 }
 
                 if (InsertMode && Year == 0)
                 {
-                    syntax.ReportError("Please provide a year, as it is required for insert mode");
+                    yield return "Please provide a year, as it is required for insert mode";
                 }
             }
         }
-
 
         public PhotoPathHelper GetPathHelper()
         {

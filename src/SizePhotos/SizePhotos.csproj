@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.CommandLine" Version="0.1.0-preview2-180503-2" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
         <PackageReference Include="NExifTool" Version="0.9.0" />
         <PackageReference Include="NJpegOptim" Version="0.1.1" />
         <PackageReference Include="NJpegTran" Version="0.1.1" />
