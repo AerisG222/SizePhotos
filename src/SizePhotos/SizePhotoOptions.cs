@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using System.Linq;
 
 namespace SizePhotos
@@ -89,9 +88,9 @@ namespace SizePhotos
                     "URL path to the root photos directory, ex: images"
                 ),
                 new Option<bool>(
-                    new string[] {"-x", "--private"},
+                    new string[] {"-x", "--is-private"},
                     "Mark the category as private"
-                ),
+                ) ,
                 new Option<ushort>(
                     new string[] {"-y", "--year"},
                     "Year the pictures were taken"
@@ -117,18 +116,18 @@ namespace SizePhotos
             rootCommand.Description = "A utility to prepare photos to be shown on mikeandwan.us";
 
             rootCommand.Handler = CommandHandler.Create<bool, string, string, string, string, bool, ushort, bool, bool, bool, bool>(
-                (fastReview, categoryName, outFile, photoDir, webPhotoRoot, isPrivate, year, isQuiet, isSqlInsertMode, isSqlUpdateMode, isNoUpdateMode) => {
+                (fastReview, category, outFile, photoDir, webPhotoRoot, isPrivate, year, quiet, sqlInsertMode, sqlUpdateMode, noOutputMode) => {
                     FastReview = fastReview;
-                    CategoryName = categoryName;
-                    Outfile = Outfile;
+                    CategoryName = category;
+                    Outfile = outFile;
                     LocalPhotoRoot = photoDir;
                     WebPhotoRoot = webPhotoRoot;
                     IsPrivate = isPrivate;
                     Year = year;
-                    Quiet = isQuiet;
-                    InsertMode = isSqlInsertMode;
-                    UpdateMode = isSqlUpdateMode;
-                    NoOutputMode = isNoUpdateMode;
+                    Quiet = quiet;
+                    InsertMode = sqlInsertMode;
+                    UpdateMode = sqlUpdateMode;
+                    NoOutputMode = noOutputMode;
                 }
             );
 
