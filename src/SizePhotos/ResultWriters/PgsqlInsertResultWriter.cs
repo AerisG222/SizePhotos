@@ -16,7 +16,6 @@ namespace SizePhotos.ResultWriters
         static readonly string[] _cols = new string[]
         {
             "category_id",
-            "is_private",
             // scaled images
             "xs_height",
             "xs_width",
@@ -184,7 +183,6 @@ namespace SizePhotos.ResultWriters
 
                 var values = new string[] {
                     "(SELECT currval('photo.category_id_seq'))",
-                    _category.IsPrivate.ToString(),
                     // scaled images
                     xs.Height.ToString(),
                     xs.Width.ToString(),
@@ -307,11 +305,10 @@ namespace SizePhotos.ResultWriters
             var xsSq = result.GetPhotoWriterResult("xs_sq");
 
             _writer.WriteLine(
-                $"INSERT INTO photo.category (name, year, is_private, teaser_photo_width, teaser_photo_height, teaser_photo_size, teaser_photo_path, teaser_photo_sq_width, teaser_photo_sq_height, teaser_photo_sq_size, teaser_photo_sq_path) " +
+                $"INSERT INTO photo.category (name, year, teaser_photo_width, teaser_photo_height, teaser_photo_size, teaser_photo_path, teaser_photo_sq_width, teaser_photo_sq_height, teaser_photo_sq_size, teaser_photo_sq_path) " +
                 $"  VALUES (" +
                 $"    {SqlHelper.SqlString(_category.Name)}, " +
                 $"    {_category.Year}, " +
-                $"    {_category.IsPrivate}, " +
                 $"    {xs.Width}, " +
                 $"    {xs.Height}, " +
                 $"    {xs.FileSize}, " +
@@ -320,6 +317,17 @@ namespace SizePhotos.ResultWriters
                 $"    {xsSq.Height}, " +
                 $"    {xsSq.FileSize}, " +
                 $"    {SqlHelper.SqlString(xsSq.Url)});");
+
+            foreach(var role in _category.AllowedRoles)
+            {
+                _writer.WriteLine(
+                    $"INSERT INTO photo.category_role (category_id, role_id)" +
+                    $"  VALUES (" +
+                    $"    (SELECT currval('photo.category_id_seq'))," +
+                    $"    (SELECT id FROM maw.role WHERE name = {SqlHelper.SqlString(role)})" +
+                    $"  );"
+                );
+            }
 
             _writer.WriteLine();
         }

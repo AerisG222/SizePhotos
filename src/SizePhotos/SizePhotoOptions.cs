@@ -15,7 +15,7 @@ namespace SizePhotos
         public string Outfile { get; private set; }
         public string LocalPhotoRoot { get; private set; }
         public string WebPhotoRoot { get; private set; }
-        public bool IsPrivate { get; private set; }
+        public string[] AllowedRoles { get; private set; }
         public ushort Year { get; private set; }
         public bool Quiet { get; private set; }
         public bool InsertMode { get; private set; }
@@ -32,7 +32,7 @@ namespace SizePhotos
                     {
                         Name = CategoryName,
                         Year = Year,
-                        IsPrivate = IsPrivate
+                        AllowedRoles = AllowedRoles
                     };
                 }
 
@@ -87,9 +87,9 @@ namespace SizePhotos
                     new string[] {"-w", "--web-photo-root"},
                     "URL path to the root photos directory, ex: images"
                 ),
-                new Option<bool>(
-                    new string[] {"-x", "--is-private"},
-                    "Mark the category as private"
+                new Option<string[]>(
+                    new string[] {"-r", "--allowed-roles"},
+                    "Roles that will have access to this category"
                 ) ,
                 new Option<ushort>(
                     new string[] {"-y", "--year"},
@@ -115,14 +115,14 @@ namespace SizePhotos
 
             rootCommand.Description = "A utility to prepare photos to be shown on mikeandwan.us";
 
-            rootCommand.Handler = CommandHandler.Create<bool, string, string, string, string, bool, ushort, bool, bool, bool, bool>(
-                (fastReview, category, outFile, photoDir, webPhotoRoot, isPrivate, year, quiet, sqlInsertMode, sqlUpdateMode, noOutputMode) => {
+            rootCommand.Handler = CommandHandler.Create<bool, string, string, string, string, string[], ushort, bool, bool, bool, bool>(
+                (fastReview, category, outFile, photoDir, webPhotoRoot, allowedRoles, year, quiet, sqlInsertMode, sqlUpdateMode, noOutputMode) => {
                     FastReview = fastReview;
                     CategoryName = category;
                     Outfile = outFile;
                     LocalPhotoRoot = photoDir;
                     WebPhotoRoot = webPhotoRoot;
-                    IsPrivate = isPrivate;
+                    AllowedRoles = allowedRoles;
                     Year = year;
                     Quiet = quiet;
                     InsertMode = sqlInsertMode;
@@ -177,6 +177,11 @@ namespace SizePhotos
                 if (InsertMode && Year == 0)
                 {
                     yield return "Please provide a year, as it is required for insert mode";
+                }
+
+                if (InsertMode && (AllowedRoles == null || !AllowedRoles.Any()))
+                {
+                    yield return "Please provide at least one role to allow";
                 }
             }
         }

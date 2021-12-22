@@ -4,6 +4,6 @@ namespace SizePhotos
     {
         public string Name { get; set; }
         public ushort Year { get; set; }
-        public bool IsPrivate { get; set; }
+        public string[] AllowedRoles { get; set; }
     }
 }
