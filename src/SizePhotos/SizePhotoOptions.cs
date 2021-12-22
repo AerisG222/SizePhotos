@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Linq;
 
 namespace SizePhotos
@@ -65,58 +64,44 @@ namespace SizePhotos
 
         RootCommand BuildRootCommand()
         {
-            var rootCommand = new RootCommand
-            {
-                new Option<bool>(
-                    new string[] {"-f", "--fast-review"},
-                    "Quick conversion to review files to keep or throw away"
-                ),
-                new Option<string>(
-                    new string[] {"-c", "--category"},
-                    "Name of the category for these photos"
-                ),
-                new Option<string>(
-                    new string[] {"-o", "--out-file"},
-                    "Path to the output SQL file that will be generated"
-                ),
-                new Option<string>(
-                    new string[] {"-p", "--photo-dir"},
-                    "Directory containing the source photos"
-                ),
-                new Option<string>(
-                    new string[] {"-w", "--web-photo-root"},
-                    "URL path to the root photos directory, ex: images"
-                ),
-                new Option<string[]>(
-                    new string[] {"-r", "--allowed-roles"},
-                    "Roles that will have access to this category"
-                ) ,
-                new Option<ushort>(
-                    new string[] {"-y", "--year"},
-                    "Year the pictures were taken"
-                ),
-                new Option<bool>(
-                    new string[] {"-q", "--quiet"},
-                    "Be quiet and do not emit status messages"
-                ),
-                new Option<bool>(
-                    new string[] {"-i", "--sql-insert-mode"},
-                    "Generate an insert script"  // SetName = "OutputMode"
-                ),
-                new Option<bool>(
-                    new string[] {"-u", "--sql-update-mode"},
-                    "Generate an update script (based on lg filepath)" // SetName = "OutputMode"
-                ),
-                new Option<bool>(
-                    new string[] {"-n", "--no-output-mode"},
-                    "Do not generate an output file, useful when reprocessing" // SetName = "OutputMode"
-                ),
+            var fastReviewOption = new Option<bool>(new[] {"-f", "--fast-review"}, "Quick conversion to review files to keep or throw away");
+            var categoryOption = new Option<string>(new[] {"-c", "--category"}, "Name of the category for these photos");
+            var outFileOption = new Option<string>(new[] {"-o", "--out-file"}, "Path to the output SQL file that will be generated");
+            var photoDirOption = new Option<string>(new[] {"-p", "--photo-dir"}, "Directory containing the source photos");
+            var webPhotoRootOption = new Option<string>(new[] {"-w", "--web-photo-root"}, "URL path to the root photos directory, ex: images");
+            var allowedRolesOption = new Option<string[]>(new[] {"-r", "--allowed-roles"}, "Roles that will have access to this category");
+            var yearOption = new Option<ushort>(new[] {"-y", "--year"}, "Year the pictures were taken");
+            var quietOption = new Option<bool>(new[] {"-q", "--quiet"}, "Be quiet and do not emit status messages");
+            var insertModeOption = new Option<bool>(new[] {"-i", "--sql-insert-mode"}, "Generate an insert script");
+            var updateModeOption = new Option<bool>(new[] {"-u", "--sql-update-mode"}, "Generate an update script (based on lg filepath)");
+            var noopModeOption = new Option<bool>(new[] {"-n", "--no-output-mode"}, "Do not generate an output file, useful when reprocessing");
+
+            var rootCommand = new RootCommand("A utility to prepare photos to be shown on mikeandwan.us") {
+                fastReviewOption,
+                categoryOption,
+                outFileOption,
+                photoDirOption,
+                webPhotoRootOption,
+                allowedRolesOption,
+                yearOption,
+                quietOption,
+                insertModeOption,
+                updateModeOption,
+                noopModeOption
             };
 
-            rootCommand.Description = "A utility to prepare photos to be shown on mikeandwan.us";
-
-            rootCommand.Handler = CommandHandler.Create<bool, string, string, string, string, string[], ushort, bool, bool, bool, bool>(
-                (fastReview, category, outFile, photoDir, webPhotoRoot, allowedRoles, year, quiet, sqlInsertMode, sqlUpdateMode, noOutputMode) => {
+            rootCommand.SetHandler((
+                bool fastReview,
+                string category,
+                string outFile,
+                string photoDir,
+                string webPhotoRoot,
+                string[] allowedRoles,
+                ushort year,
+                bool quiet,
+                bool sqlInsertMode,
+                bool sqlUpdateMode,
+                bool noOutputMode) => {
                     FastReview = fastReview;
                     CategoryName = category;
                     Outfile = outFile;
@@ -128,7 +113,18 @@ namespace SizePhotos
                     InsertMode = sqlInsertMode;
                     UpdateMode = sqlUpdateMode;
                     NoOutputMode = noOutputMode;
-                }
+                },
+                fastReviewOption,
+                categoryOption,
+                outFileOption,
+                photoDirOption,
+                webPhotoRootOption,
+                allowedRolesOption,
+                yearOption,
+                quietOption,
+                insertModeOption,
+                updateModeOption,
+                noopModeOption
             );
 
             return rootCommand;
