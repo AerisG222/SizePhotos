@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-
 namespace SizePhotos;
 
 public class PhotoPathHelper
@@ -35,7 +34,6 @@ public class PhotoPathHelper
         }
     }
 
-
     public PhotoPathHelper(string localRoot, string webRoot, ushort year)
     {
         if (string.IsNullOrWhiteSpace(localRoot))
@@ -56,7 +54,6 @@ public class PhotoPathHelper
         Year = year;
     }
 
-
     public PhotoPathHelper(string localRoot, string webRoot)
     {
         // this is for the upgrade case, where we should be able to infer the year from the path
@@ -75,30 +72,25 @@ public class PhotoPathHelper
         InferYear();
     }
 
-
     public string GetSourceFilePath(string filename)
     {
         return Path.Combine(LocalRoot, filename);
     }
-
 
     public string GetScaledLocalPath(string scaleName)
     {
         return Path.Combine(LocalRoot, scaleName);
     }
 
-
     public string GetScaledLocalPath(string scaleName, string filename)
     {
         return Path.Combine(LocalRoot, scaleName, filename);
     }
 
-
     public string GetScaledWebFilePath(string scaleName, string filename)
     {
         return $"{WebRoot}/{Year}/{CategorySegment}/{scaleName}/{filename}";
     }
-
 
     void InferYear()
     {
@@ -123,12 +115,10 @@ public class PhotoPathHelper
         }
     }
 
-
     string[] LocalPathParts()
     {
         return LocalRoot.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
     }
-
 
     string TrimWebPathSeparators(string val)
     {

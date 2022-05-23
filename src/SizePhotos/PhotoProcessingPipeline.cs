@@ -2,19 +2,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 namespace SizePhotos;
 
 class PhotoProcessingPipeline
 {
     readonly List<IPhotoProcessor> _processors = new List<IPhotoProcessor>();
 
-
     public void AddProcessor(IPhotoProcessor processor)
     {
         _processors.Add(processor);
     }
-
 
     public async Task<ProcessingContext> ProcessPhotoAsync(string photoPath)
     {
@@ -39,7 +36,6 @@ class PhotoProcessingPipeline
 
         return ctx;
     }
-
 
     internal IEnumerable<IOutput> GetOutputProcessors()
     {

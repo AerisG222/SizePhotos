@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-
 namespace SizePhotos.ResultWriters;
 
 public abstract class BaseResultWriter
@@ -9,7 +8,6 @@ public abstract class BaseResultWriter
 {
     protected List<ProcessingContext> _results = new List<ProcessingContext>();
     protected StreamWriter _writer;
-
 
     public abstract void AddResult(ProcessingContext ctx);
     public abstract void PostProcess();

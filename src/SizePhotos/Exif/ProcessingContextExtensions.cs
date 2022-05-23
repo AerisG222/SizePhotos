@@ -1,6 +1,5 @@
 using System.Linq;
 
-
 namespace SizePhotos.Exif;
 
 public static class ProcessingContextExtensions

@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 
-
 namespace SizePhotos;
 
 public class ContextTerminatorPhotoProcessor
@@ -11,7 +10,6 @@ public class ContextTerminatorPhotoProcessor
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
     {

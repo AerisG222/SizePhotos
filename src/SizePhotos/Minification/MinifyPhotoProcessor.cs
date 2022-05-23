@@ -5,7 +5,6 @@ using NJpegOptim;
 using NJpegTran;
 using SizePhotos.PhotoWriters;
 
-
 namespace SizePhotos.Minification;
 
 public class MinifyPhotoProcessor
@@ -14,7 +13,6 @@ public class MinifyPhotoProcessor
     readonly string _scaleName;
     readonly short _jpgQuality;
     readonly PhotoPathHelper _pathHelper;
-
 
     public MinifyPhotoProcessor(string scaleName, short jpgQuality, PhotoPathHelper pathHelper)
     {
@@ -33,12 +31,10 @@ public class MinifyPhotoProcessor
         _pathHelper = pathHelper ?? throw new ArgumentNullException(nameof(pathHelper));
     }
 
-
     public IPhotoProcessor Clone()
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
     {
@@ -75,7 +71,6 @@ public class MinifyPhotoProcessor
         return new MinifyProcessingResult(true);
     }
 
-
     async Task<NJpegOptim.Result> ExecuteJpegOptim(string srcPath)
     {
         var opts = new NJpegOptim.Options
@@ -90,7 +85,6 @@ public class MinifyPhotoProcessor
 
         return await jo.RunAsync(srcPath);
     }
-
 
     async Task<NJpegTran.Result> ExecuteJpegTran(Stream inputStream, string dstPath)
     {

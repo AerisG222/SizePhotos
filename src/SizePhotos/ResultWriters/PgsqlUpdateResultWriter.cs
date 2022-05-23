@@ -5,14 +5,12 @@ using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 
-
 namespace SizePhotos.ResultWriters;
 
 public class PgsqlUpdateResultWriter
     : BasePgsqlResultWriter
 {
     readonly string _file;
-
 
     static readonly string[] _cols = new string[]
     {
@@ -122,30 +120,25 @@ public class PgsqlUpdateResultWriter
             "shutter_speed"
     };
 
-
     public PgsqlUpdateResultWriter(string outputFile)
     {
         _file = outputFile;
     }
-
 
     public override void PreProcess(CategoryInfo category)
     {
         PrepareOutputStream();
     }
 
-
     public override void PostProcess()
     {
         FinalizeOutputStream();
     }
 
-
     public override void AddResult(ProcessingContext context)
     {
         _results.Add(context);
     }
-
 
     void PrepareOutputStream()
     {
@@ -154,13 +147,11 @@ public class PgsqlUpdateResultWriter
         WriteHeader();
     }
 
-
     void FinalizeOutputStream()
     {
         WriteResultSql();
         WriteFooter();
     }
-
 
     void WriteResultSql()
     {

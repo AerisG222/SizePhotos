@@ -12,7 +12,6 @@ public class PhotoWriterProcessingResult
     public string Url { get; private set; }
     public string ErrorMessage { get; private set; }
 
-
     public PhotoWriterProcessingResult(bool success, string scaleName, uint height, uint width, long fileSize, string localPath, string url)
     {
         Successful = success;
@@ -23,7 +22,6 @@ public class PhotoWriterProcessingResult
         LocalPath = localPath;
         Url = url;
     }
-
 
     public PhotoWriterProcessingResult(string errorMessage)
     {

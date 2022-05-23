@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using SizePhotos.Exif;
 
-
 namespace SizePhotos.ResultWriters;
 
 public abstract class BasePgsqlResultWriter
@@ -16,7 +15,6 @@ public abstract class BasePgsqlResultWriter
         _writer.WriteLine();
     }
 
-
     protected void WriteFooter()
     {
         _writer.WriteLine("END");
@@ -26,7 +24,6 @@ public abstract class BasePgsqlResultWriter
         _writer.Dispose();
         _writer = null;
     }
-
 
     protected void WriteLookups()
     {
@@ -58,7 +55,6 @@ public abstract class BasePgsqlResultWriter
 
         WriteLookups("photo.gps_altitude_ref", exifDataList.Select(x => x.ExifData.GpsAltitudeRef).Distinct());
     }
-
 
     void WriteLookups(string table, IEnumerable<string> values)
     {

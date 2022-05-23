@@ -13,7 +13,6 @@ public class ExifProcessingResult
         ExifData = data;
     }
 
-
     public ExifProcessingResult(string errorMessage)
     {
         Successful = false;

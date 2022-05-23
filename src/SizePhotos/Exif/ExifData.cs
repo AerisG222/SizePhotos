@@ -1,6 +1,5 @@
 using System;
 
-
 namespace SizePhotos.Exif;
 
 public class ExifData

@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 
-
 namespace SizePhotos.ResultWriters;
 
 static class SqlHelper
@@ -15,7 +14,6 @@ static class SqlHelper
 
         return SqlString(val.ToString());
     }
-
 
     public static string SqlString(string val)
     {
@@ -31,7 +29,6 @@ static class SqlHelper
         }
     }
 
-
     public static string SqlNumber(object num)
     {
         if (num == null)
@@ -41,7 +38,6 @@ static class SqlHelper
 
         return num.ToString();
     }
-
 
     public static string SqlTimestamp(DateTime? dt)
     {
@@ -53,7 +49,6 @@ static class SqlHelper
 
         return SqlString(((DateTime)dt).ToString("yyyy-MM-dd HH:mm:sszzz"));
     }
-
 
     public static string SqlCreateLookup(string table, string value)
     {
@@ -71,7 +66,6 @@ static class SqlHelper
 
         return sb.ToString();
     }
-
 
     public static string SqlLookupId(string table, string value)
     {

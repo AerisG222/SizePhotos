@@ -6,12 +6,10 @@ public class ContextTerminatorProcessingResult
     public bool Successful { get; private set; }
     public string ErrorMessage { get; private set; }
 
-
     public ContextTerminatorProcessingResult(bool success)
     {
         Successful = success;
     }
-
 
     public ContextTerminatorProcessingResult(string errorMessage)
     {

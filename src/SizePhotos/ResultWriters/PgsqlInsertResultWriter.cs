@@ -5,7 +5,6 @@ using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 
-
 namespace SizePhotos.ResultWriters;
 
 public class PgsqlInsertResultWriter
@@ -122,12 +121,10 @@ public class PgsqlInsertResultWriter
             "shutter_speed"
     };
 
-
     public PgsqlInsertResultWriter(string outputFile)
     {
         _file = outputFile;
     }
-
 
     public override void PreProcess(CategoryInfo category)
     {
@@ -135,18 +132,15 @@ public class PgsqlInsertResultWriter
         PrepareOutputStream();
     }
 
-
     public override void PostProcess()
     {
         FinalizeOutputStream();
     }
 
-
     public override void AddResult(ProcessingContext ctx)
     {
         _results.Add(ctx);
     }
-
 
     void PrepareOutputStream()
     {
@@ -155,13 +149,11 @@ public class PgsqlInsertResultWriter
         WriteHeader();
     }
 
-
     void FinalizeOutputStream()
     {
         WriteResultSql();
         WriteFooter();
     }
-
 
     void WriteResultSql()
     {
@@ -297,7 +289,6 @@ public class PgsqlInsertResultWriter
         _writer.WriteLine();
     }
 
-
     void WriteCategoryCreate()
     {
         var result = _results.First();
@@ -331,7 +322,6 @@ public class PgsqlInsertResultWriter
 
         _writer.WriteLine();
     }
-
 
     void WriteCategoryUpdate()
     {

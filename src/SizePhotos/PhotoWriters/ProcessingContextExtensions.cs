@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace SizePhotos.PhotoWriters;
 
 public static class ProcessingContextExtensions
@@ -11,7 +10,6 @@ public static class ProcessingContextExtensions
     {
         return ctx.Results.OfType<PhotoWriterProcessingResult>();
     }
-
 
     public static PhotoWriterProcessingResult GetPhotoWriterResult(this ProcessingContext ctx, string scaleName)
     {

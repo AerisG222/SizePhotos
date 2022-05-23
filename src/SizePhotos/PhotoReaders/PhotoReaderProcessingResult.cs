@@ -11,13 +11,11 @@ public class PhotoReaderProcessingResult
     public string Url { get; private set; }
     public string ErrorMessage { get; private set; }
 
-
     public PhotoReaderProcessingResult(bool success, bool skipped)
     {
         Successful = success;
         Skipped = skipped;
     }
-
 
     public PhotoReaderProcessingResult(bool success, bool skipped, uint height, uint width, long fileSize, string url)
         : this(success, skipped)
@@ -27,7 +25,6 @@ public class PhotoReaderProcessingResult
         Url = url;
         FileSize = fileSize;
     }
-
 
     public PhotoReaderProcessingResult(string errorMessage)
     {

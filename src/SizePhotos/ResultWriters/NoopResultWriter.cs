@@ -8,12 +8,10 @@ public class NoopResultWriter
 
     }
 
-
     public void AddResult(ProcessingContext ctx)
     {
 
     }
-
 
     public void PostProcess()
     {

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using NMagickWand;
 
-
 namespace SizePhotos;
 
 public class ProcessingContext
@@ -13,7 +12,6 @@ public class ProcessingContext
     public string SourceFile { get; set; }
     public MagickWand Wand { get; set; }
 
-
     public IEnumerable<IProcessingResult> Results
     {
         get
@@ -21,7 +19,6 @@ public class ProcessingContext
             return _results;
         }
     }
-
 
     public bool HasErrors
     {
@@ -36,7 +33,6 @@ public class ProcessingContext
         }
     }
 
-
     public IEnumerable<string> ErrorMessages
     {
         get
@@ -46,7 +42,6 @@ public class ProcessingContext
                 .Select(x => x.ErrorMessage);
         }
     }
-
 
     public ProcessingContext(string photoPath)
     {
@@ -62,7 +57,6 @@ public class ProcessingContext
 
         SourceFile = photoPath;
     }
-
 
     internal void AddResult(IProcessingResult result)
     {

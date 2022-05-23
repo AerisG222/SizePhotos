@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-
 namespace SizePhotos.PhotoWriters;
 
 public class PhotoWriterFixedSizePhotoProcessor
@@ -15,7 +14,6 @@ public class PhotoWriterFixedSizePhotoProcessor
     float _aspect;
     PhotoPathHelper _pathHelper;
 
-
     public string OutputSubdirectory
     {
         get
@@ -23,7 +21,6 @@ public class PhotoWriterFixedSizePhotoProcessor
             return _scaleName;
         }
     }
-
 
     public PhotoWriterFixedSizePhotoProcessor(bool quiet, string scaleName, uint height, uint width, PhotoPathHelper pathHelper)
     {
@@ -36,12 +33,10 @@ public class PhotoWriterFixedSizePhotoProcessor
         _aspect = _width / _height;
     }
 
-
     public IPhotoProcessor Clone()
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
     {
@@ -54,7 +49,6 @@ public class PhotoWriterFixedSizePhotoProcessor
             return Task.FromResult((IProcessingResult)new PhotoWriterProcessingResult($"Error writing file for scale {_scaleName}: {ex.Message}"));
         }
     }
-
 
     PhotoWriterProcessingResult ScalePhoto(ProcessingContext ctx)
     {

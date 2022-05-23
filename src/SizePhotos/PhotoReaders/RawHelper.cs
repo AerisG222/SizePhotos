@@ -1,6 +1,5 @@
 using System;
 
-
 namespace SizePhotos.PhotoReaders;
 
 static class RawHelper

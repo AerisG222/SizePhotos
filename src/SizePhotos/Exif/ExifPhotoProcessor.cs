@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using NExifTool;
 
-
 namespace SizePhotos.Exif;
 
 public class ExifPhotoProcessor
@@ -15,7 +14,6 @@ public class ExifPhotoProcessor
     {
         return (IPhotoProcessor)this.MemberwiseClone();
     }
-
 
     public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
     {
@@ -30,7 +28,6 @@ public class ExifPhotoProcessor
             return new ExifProcessingResult($"Error obtaining exif data: {ex.Message}");
         }
     }
-
 
     async Task<ExifData> ReadExifDataAsync(string photoPath)
     {

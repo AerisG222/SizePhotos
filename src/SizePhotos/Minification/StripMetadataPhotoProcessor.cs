@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 
-
 namespace SizePhotos.Minification;
 
 public class StripMetadataPhotoProcessor
@@ -10,7 +9,6 @@ public class StripMetadataPhotoProcessor
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
     {

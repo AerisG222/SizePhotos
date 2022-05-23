@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace SizePhotos.PhotoReaders;
 
 public static class ProcessingContextExtensions
@@ -10,7 +9,6 @@ public static class ProcessingContextExtensions
     {
         return ctx.Results.OfType<PhotoReaderProcessingResult>();
     }
-
 
     public static PhotoReaderProcessingResult GetSuccessfulPhotoReaderResult(this ProcessingContext ctx)
     {

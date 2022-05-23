@@ -6,12 +6,10 @@ public class MoveProcessingResult
     public bool Successful { get; private set; }
     public string ErrorMessage { get; private set; }
 
-
     public MoveProcessingResult(bool success)
     {
         Successful = success;
     }
-
 
     public MoveProcessingResult(string errorMessage)
     {

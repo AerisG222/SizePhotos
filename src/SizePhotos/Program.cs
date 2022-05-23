@@ -10,7 +10,6 @@ using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 using SizePhotos.ResultWriters;
 
-
 namespace SizePhotos;
 
 class Program
@@ -24,14 +23,12 @@ class Program
     readonly IResultWriter _writer;
     readonly PhotoProcessingPipeline _pipeline = new PhotoProcessingPipeline();
 
-
     public Program(SizePhotoOptions opts)
     {
         _opts = opts;
         _pathHelper = _opts.GetPathHelper();
         _writer = GetWriter();
     }
-
 
     public static void Main(string[] args)
     {
@@ -41,7 +38,6 @@ class Program
         var p = new Program(opts);
         p.Run();
     }
-
 
     void Run()
     {
@@ -80,7 +76,6 @@ class Program
             Environment.Exit(1);
         }
     }
-
 
     void BuildPipeline()
     {
@@ -128,7 +123,6 @@ class Program
         }
     }
 
-
     void PrepareDirectories()
     {
         var outputs = _pipeline.GetOutputProcessors();
@@ -148,7 +142,6 @@ class Program
         }
     }
 
-
     void ResizePhotos()
     {
         var files = GetPhotos();
@@ -166,7 +159,6 @@ class Program
         MagickWandEnvironment.Terminus();
         _writer.PostProcess();
     }
-
 
     void ProcessPhoto(string file)
     {
@@ -196,7 +188,6 @@ class Program
         }
     }
 
-
     IEnumerable<string> GetPhotos()
     {
         return Directory.GetFiles(_opts.LocalPhotoRoot)
@@ -204,7 +195,6 @@ class Program
             .OrderBy(x => x)
             .ToList();
     }
-
 
     IResultWriter GetWriter()
     {

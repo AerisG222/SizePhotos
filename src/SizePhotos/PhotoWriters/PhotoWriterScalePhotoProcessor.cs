@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NMagickWand;
 using SizePhotos.Minification;
 
-
 namespace SizePhotos.PhotoWriters;
 
 public class PhotoWriterScalePhotoProcessor
@@ -16,7 +15,6 @@ public class PhotoWriterScalePhotoProcessor
     uint _maxWidth;
     PhotoPathHelper _pathHelper;
 
-
     public string OutputSubdirectory
     {
         get
@@ -24,7 +22,6 @@ public class PhotoWriterScalePhotoProcessor
             return _scaleName;
         }
     }
-
 
     public PhotoWriterScalePhotoProcessor(bool quiet, string scaleName, uint maxHeight, uint maxWidth, PhotoPathHelper pathHelper)
     {
@@ -35,12 +32,10 @@ public class PhotoWriterScalePhotoProcessor
         _pathHelper = pathHelper;
     }
 
-
     public IPhotoProcessor Clone()
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
     {
@@ -53,7 +48,6 @@ public class PhotoWriterScalePhotoProcessor
             return Task.FromResult((IProcessingResult)new PhotoWriterProcessingResult($"Error writing file for scale {_scaleName}: {ex.Message}"));
         }
     }
-
 
     PhotoWriterProcessingResult ScalePhoto(ProcessingContext ctx)
     {

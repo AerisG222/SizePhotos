@@ -5,7 +5,6 @@ using NMagickWand;
 using NRawTherapee;
 using NRawTherapee.OutputFormat;
 
-
 namespace SizePhotos.PhotoReaders;
 
 public class RawTherapeePhotoReaderPhotoProcessor
@@ -14,19 +13,16 @@ public class RawTherapeePhotoReaderPhotoProcessor
     bool _quiet;
     PhotoPathHelper _pathHelper;
 
-
     public RawTherapeePhotoReaderPhotoProcessor(bool quiet, PhotoPathHelper pathHelper)
     {
         _quiet = quiet;
         _pathHelper = pathHelper;
     }
 
-
     public IPhotoProcessor Clone()
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
     {
@@ -61,7 +57,6 @@ public class RawTherapeePhotoReaderPhotoProcessor
             }
         }
     }
-
 
     async Task<string> ReadAsync(string sourceFile)
     {

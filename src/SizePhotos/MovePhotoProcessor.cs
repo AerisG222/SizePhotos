@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-
 namespace SizePhotos;
 
 public class MovePhotoProcessor
@@ -12,7 +11,6 @@ public class MovePhotoProcessor
     string _subdir;
     bool _updateSource;
 
-
     public string OutputSubdirectory
     {
         get
@@ -21,7 +19,6 @@ public class MovePhotoProcessor
         }
     }
 
-
     public MovePhotoProcessor(bool quiet, string subdir, bool updateSource)
     {
         _quiet = quiet;
@@ -29,12 +26,10 @@ public class MovePhotoProcessor
         _updateSource = updateSource;
     }
 
-
     public IPhotoProcessor Clone()
     {
         return (IPhotoProcessor)MemberwiseClone();
     }
-
 
     public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
     {
