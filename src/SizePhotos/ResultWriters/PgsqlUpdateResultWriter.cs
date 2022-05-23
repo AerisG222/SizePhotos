@@ -1,9 +1,5 @@
 using System;
 using System.IO;
-using SizePhotos.Exif;
-using SizePhotos.Minification;
-using SizePhotos.PhotoReaders;
-using SizePhotos.PhotoWriters;
 
 namespace SizePhotos.ResultWriters;
 

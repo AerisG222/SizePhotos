@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using NMagickWand;
-using SizePhotos.Minification;
 
 namespace SizePhotos.PhotoWriters;
 

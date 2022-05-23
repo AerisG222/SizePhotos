@@ -1,7 +1,6 @@
 using System.IO;
 using System.Linq;
 using SizePhotos.Exif;
-using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 
