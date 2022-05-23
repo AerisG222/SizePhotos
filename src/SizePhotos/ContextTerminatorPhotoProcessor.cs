@@ -2,35 +2,34 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace SizePhotos
+namespace SizePhotos;
+
+public class ContextTerminatorPhotoProcessor
+    : IPhotoProcessor
 {
-    public class ContextTerminatorPhotoProcessor
-        : IPhotoProcessor
+    public IPhotoProcessor Clone()
     {
-        public IPhotoProcessor Clone()
+        return (IPhotoProcessor)MemberwiseClone();
+    }
+
+
+    public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
+    {
+        if (context.Wand == null)
         {
-            return (IPhotoProcessor)MemberwiseClone();
+            return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult(true));
         }
 
-
-        public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
+        try
         {
-            if (context.Wand == null)
-            {
-                return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult(true));
-            }
+            context.Wand.Dispose();
+            context.Wand = null;
 
-            try
-            {
-                context.Wand.Dispose();
-                context.Wand = null;
-
-                return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult(true));
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult($"Error terminating context: {ex.Message}"));
-            }
+            return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult(true));
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult((IProcessingResult)new ContextTerminatorProcessingResult($"Error terminating context: {ex.Message}"));
         }
     }
 }

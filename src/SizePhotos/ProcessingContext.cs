@@ -5,73 +5,72 @@ using System.Linq;
 using NMagickWand;
 
 
-namespace SizePhotos
+namespace SizePhotos;
+
+public class ProcessingContext
 {
-    public class ProcessingContext
+    readonly List<IProcessingResult> _results = new List<IProcessingResult>();
+    public string SourceFile { get; set; }
+    public MagickWand Wand { get; set; }
+
+
+    public IEnumerable<IProcessingResult> Results
     {
-        readonly List<IProcessingResult> _results = new List<IProcessingResult>();
-        public string SourceFile { get; set; }
-        public MagickWand Wand { get; set; }
-
-
-        public IEnumerable<IProcessingResult> Results
+        get
         {
-            get
+            return _results;
+        }
+    }
+
+
+    public bool HasErrors
+    {
+        get
+        {
+            if (_results.Count == 0)
             {
-                return _results;
+                return false;
             }
+
+            return _results.Any(x => !x.Successful);
+        }
+    }
+
+
+    public IEnumerable<string> ErrorMessages
+    {
+        get
+        {
+            return _results
+                .Where(x => !x.Successful)
+                .Select(x => x.ErrorMessage);
+        }
+    }
+
+
+    public ProcessingContext(string photoPath)
+    {
+        if (string.IsNullOrWhiteSpace(photoPath))
+        {
+            throw new ArgumentNullException(nameof(photoPath));
         }
 
-
-        public bool HasErrors
+        if (!File.Exists(photoPath))
         {
-            get
-            {
-                if(_results.Count == 0)
-                {
-                    return false;
-                }
-
-                return _results.Any(x => !x.Successful);
-            }
+            throw new FileNotFoundException(photoPath);
         }
 
+        SourceFile = photoPath;
+    }
 
-        public IEnumerable<string> ErrorMessages
+
+    internal void AddResult(IProcessingResult result)
+    {
+        if (result == null)
         {
-            get
-            {
-                return _results
-                    .Where(x => !x.Successful)
-                    .Select(x => x.ErrorMessage);
-            }
+            throw new ArgumentNullException(nameof(result));
         }
 
-
-        public ProcessingContext(string photoPath)
-        {
-            if(string.IsNullOrWhiteSpace(photoPath))
-            {
-                throw new ArgumentNullException(nameof(photoPath));
-            }
-
-            if(!File.Exists(photoPath))
-            {
-                throw new FileNotFoundException(photoPath);
-            }
-
-            SourceFile = photoPath;
-        }
-
-
-        internal void AddResult(IProcessingResult result)
-        {
-            if(result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
-
-            _results.Add(result);
-        }
+        _results.Add(result);
     }
 }

@@ -1,27 +1,26 @@
 using System.Threading.Tasks;
 
 
-namespace SizePhotos.Minification
+namespace SizePhotos.Minification;
+
+public class StripMetadataPhotoProcessor
+    : IPhotoProcessor
 {
-    public class StripMetadataPhotoProcessor
-        : IPhotoProcessor
+    public IPhotoProcessor Clone()
     {
-        public IPhotoProcessor Clone()
+        return (IPhotoProcessor)MemberwiseClone();
+    }
+
+
+    public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
+    {
+        if (context.Wand != null)
         {
-            return (IPhotoProcessor) MemberwiseClone();
+            context.Wand.StripImage();
+
+            return Task.FromResult((IProcessingResult)new StripMetadataProcessingResult(true));
         }
 
-
-        public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context)
-        {
-            if(context.Wand != null)
-            {
-                context.Wand.StripImage();
-
-                return Task.FromResult((IProcessingResult) new StripMetadataProcessingResult(true));
-            }
-
-            return Task.FromResult((IProcessingResult) new StripMetadataProcessingResult("Error stripping metadata as the image/wand was null."));
-        }
+        return Task.FromResult((IProcessingResult)new StripMetadataProcessingResult("Error stripping metadata as the image/wand was null."));
     }
 }

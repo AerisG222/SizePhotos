@@ -1,13 +1,12 @@
 using System;
 
 
-namespace SizePhotos.PhotoReaders
+namespace SizePhotos.PhotoReaders;
+
+static class RawHelper
 {
-    static class RawHelper
+    public static bool IsRawFile(string file)
     {
-        public static bool IsRawFile(string file)
-        {
-            return file.EndsWith("nef", StringComparison.OrdinalIgnoreCase);
-        }
+        return file.EndsWith("nef", StringComparison.OrdinalIgnoreCase);
     }
 }

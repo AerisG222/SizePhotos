@@ -1,22 +1,21 @@
-namespace SizePhotos
+namespace SizePhotos;
+
+public class ContextTerminatorProcessingResult
+    : IProcessingResult
 {
-    public class ContextTerminatorProcessingResult
-        : IProcessingResult
+    public bool Successful { get; private set; }
+    public string ErrorMessage { get; private set; }
+
+
+    public ContextTerminatorProcessingResult(bool success)
     {
-        public bool Successful { get; private set; }
-        public string ErrorMessage { get; private set; }
+        Successful = success;
+    }
 
 
-        public ContextTerminatorProcessingResult(bool success)
-        {
-            Successful = success;
-        }
-
-
-        public ContextTerminatorProcessingResult(string errorMessage)
-        {
-            Successful = false;
-            ErrorMessage = errorMessage;
-        }
+    public ContextTerminatorProcessingResult(string errorMessage)
+    {
+        Successful = false;
+        ErrorMessage = errorMessage;
     }
 }

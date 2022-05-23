@@ -1,9 +1,8 @@
-namespace SizePhotos.ResultWriters
+namespace SizePhotos.ResultWriters;
+
+public interface IResultWriter
 {
-    public interface IResultWriter
-    {
-        void PreProcess(CategoryInfo category);
-        void AddResult(ProcessingContext ctx);
-        void PostProcess();
-    }
+    void PreProcess(CategoryInfo category);
+    void AddResult(ProcessingContext ctx);
+    void PostProcess();
 }

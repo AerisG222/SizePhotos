@@ -1,23 +1,22 @@
-namespace SizePhotos.ResultWriters
+namespace SizePhotos.ResultWriters;
+
+public class NoopResultWriter
+    : IResultWriter
 {
-    public class NoopResultWriter
-        : IResultWriter
+    public void PreProcess(CategoryInfo category)
     {
-        public void PreProcess(CategoryInfo category)
-        {
 
-        }
+    }
 
 
-        public void AddResult(ProcessingContext ctx)
-        {
+    public void AddResult(ProcessingContext ctx)
+    {
 
-        }
+    }
 
-        
-        public void PostProcess()
-        {
 
-        }
+    public void PostProcess()
+    {
+
     }
 }

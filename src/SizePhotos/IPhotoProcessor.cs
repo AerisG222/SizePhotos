@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 
 
-namespace SizePhotos
+namespace SizePhotos;
+
+public interface IPhotoProcessor
 {
-    public interface IPhotoProcessor
-    {
-        Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context);
-        IPhotoProcessor Clone();
-    }
+    Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context);
+    IPhotoProcessor Clone();
 }

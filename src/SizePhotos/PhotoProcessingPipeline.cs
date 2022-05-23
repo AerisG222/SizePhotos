@@ -3,47 +3,46 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace SizePhotos
+namespace SizePhotos;
+
+class PhotoProcessingPipeline
 {
-    class PhotoProcessingPipeline
+    readonly List<IPhotoProcessor> _processors = new List<IPhotoProcessor>();
+
+
+    public void AddProcessor(IPhotoProcessor processor)
     {
-        readonly List<IPhotoProcessor> _processors = new List<IPhotoProcessor>();
+        _processors.Add(processor);
+    }
 
 
-        public void AddProcessor(IPhotoProcessor processor)
+    public async Task<ProcessingContext> ProcessPhotoAsync(string photoPath)
+    {
+        var ctx = new ProcessingContext(photoPath);
+
+        foreach (var processor in _processors)
         {
-            _processors.Add(processor);
-        }
+            var proc = processor.Clone();
 
+            var result = await proc.ProcessPhotoAsync(ctx);
 
-        public async Task<ProcessingContext> ProcessPhotoAsync(string photoPath)
-        {
-            var ctx = new ProcessingContext(photoPath);
-
-            foreach(var processor in _processors)
+            if (result != null)
             {
-                var proc = processor.Clone();
-                
-                var result = await proc.ProcessPhotoAsync(ctx);
-                
-                if(result != null)
-                {
-                    ctx.AddResult(result);
+                ctx.AddResult(result);
 
-                    if(!result.Successful)
-                    {
-                        break;
-                    }
+                if (!result.Successful)
+                {
+                    break;
                 }
             }
-
-            return ctx;
         }
 
+        return ctx;
+    }
 
-        internal IEnumerable<IOutput> GetOutputProcessors()
-        {
-            return _processors.OfType<IOutput>();
-        }
+
+    internal IEnumerable<IOutput> GetOutputProcessors()
+    {
+        return _processors.OfType<IOutput>();
     }
 }

@@ -1,8 +1,7 @@
-namespace SizePhotos
+namespace SizePhotos;
+
+public interface IProcessingResult
 {
-    public interface IProcessingResult
-    {
-        bool Successful { get; }
-        string ErrorMessage { get; }
-    }
+    bool Successful { get; }
+    string ErrorMessage { get; }
 }

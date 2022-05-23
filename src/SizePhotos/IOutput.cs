@@ -1,7 +1,6 @@
-namespace SizePhotos
+namespace SizePhotos;
+
+public interface IOutput
 {
-    public interface IOutput
-    {
-        string OutputSubdirectory { get; }
-    }
+    string OutputSubdirectory { get; }
 }

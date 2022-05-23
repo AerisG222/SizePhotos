@@ -3,103 +3,102 @@ using System.IO;
 using System.Threading.Tasks;
 
 
-namespace SizePhotos.PhotoWriters
+namespace SizePhotos.PhotoWriters;
+
+public class PhotoWriterFixedSizePhotoProcessor
+    : IOutput, IPhotoProcessor
 {
-    public class PhotoWriterFixedSizePhotoProcessor
-        : IOutput, IPhotoProcessor
+    bool _quiet;
+    string _scaleName;
+    uint _height;
+    uint _width;
+    float _aspect;
+    PhotoPathHelper _pathHelper;
+
+
+    public string OutputSubdirectory
     {
-        bool _quiet;
-        string _scaleName;
-        uint _height;
-        uint _width;
-        float _aspect;
-        PhotoPathHelper _pathHelper;
-
-
-        public string OutputSubdirectory
+        get
         {
-            get
-            {
-                return _scaleName;
-            }
+            return _scaleName;
         }
+    }
 
 
-        public PhotoWriterFixedSizePhotoProcessor(bool quiet, string scaleName, uint height, uint width, PhotoPathHelper pathHelper)
+    public PhotoWriterFixedSizePhotoProcessor(bool quiet, string scaleName, uint height, uint width, PhotoPathHelper pathHelper)
+    {
+        _quiet = quiet;
+        _scaleName = scaleName;
+        _height = height;
+        _width = width;
+        _pathHelper = pathHelper;
+
+        _aspect = _width / _height;
+    }
+
+
+    public IPhotoProcessor Clone()
+    {
+        return (IPhotoProcessor)MemberwiseClone();
+    }
+
+
+    public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
+    {
+        try
         {
-            _quiet = quiet;
-            _scaleName = scaleName;
-            _height = height;
-            _width = width;
-            _pathHelper = pathHelper;
-
-            _aspect = _width / _height;
+            return Task.FromResult((IProcessingResult)ScalePhoto(ctx));
         }
-
-
-        public IPhotoProcessor Clone()
+        catch (Exception ex)
         {
-            return (IPhotoProcessor) MemberwiseClone();
+            return Task.FromResult((IProcessingResult)new PhotoWriterProcessingResult($"Error writing file for scale {_scaleName}: {ex.Message}"));
         }
+    }
 
 
-        public Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
+    PhotoWriterProcessingResult ScalePhoto(ProcessingContext ctx)
+    {
+        var filename = Path.GetFileName(ctx.SourceFile);
+        var jpgName = Path.ChangeExtension(filename, ".jpg");
+        var localPath = _pathHelper.GetScaledLocalPath(_scaleName, jpgName);
+        var url = _pathHelper.GetScaledWebFilePath(_scaleName, jpgName);
+
+        using (var tmpWand = ctx.Wand.Clone())
         {
-            try
+            var width = (double)tmpWand.ImageWidth;
+            var height = (double)tmpWand.ImageHeight;
+            var aspect = width / height;
+
+            if (aspect >= _aspect)
             {
-                return Task.FromResult((IProcessingResult) ScalePhoto(ctx));
+                var newWidth = (width / height) * _height;
+
+                // scale image to final height
+                tmpWand.ScaleImage((uint)newWidth, _height);
+
+                // crop sides as needed
+                tmpWand.CropImage(_width, _height, (int)(newWidth - _width) / 2, 0);
             }
-            catch(Exception ex)
+            else
             {
-                return Task.FromResult((IProcessingResult) new PhotoWriterProcessingResult($"Error writing file for scale {_scaleName}: {ex.Message}"));
+                var newHeight = _width / (width / height);
+
+                // scale image to final width
+                tmpWand.ScaleImage(_width, (uint)newHeight);
+
+                // crop top and bottom as needed
+                tmpWand.CropImage(_width, _height, 0, (int)(newHeight - _height) / 2);
             }
-        }
 
+            // sharpen after potentially resizing
+            // http://www.imagemagick.org/Usage/resize/#resize_unsharp
+            tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
 
-        PhotoWriterProcessingResult ScalePhoto(ProcessingContext ctx)
-        {
-            var filename = Path.GetFileName(ctx.SourceFile);
-            var jpgName = Path.ChangeExtension(filename, ".jpg");
-            var localPath = _pathHelper.GetScaledLocalPath(_scaleName, jpgName);
-            var url = _pathHelper.GetScaledWebFilePath(_scaleName, jpgName);
+            tmpWand.WriteImage(localPath, true);
 
-            using(var tmpWand = ctx.Wand.Clone())
-            {
-                var width = (double)tmpWand.ImageWidth;
-                var height = (double)tmpWand.ImageHeight;
-                var aspect = width / height;
+            var file = new FileInfo(localPath);
 
-                if(aspect >= _aspect)
-                {
-                    var newWidth = (width / height) * _height;
-
-                    // scale image to final height
-                    tmpWand.ScaleImage((uint) newWidth, _height);
-
-                    // crop sides as needed
-                    tmpWand.CropImage(_width, _height, (int) (newWidth - _width) / 2, 0);
-                }
-                else
-                {
-                    var newHeight = _width / (width / height);
-
-                    // scale image to final width
-                    tmpWand.ScaleImage(_width, (uint) newHeight);
-
-                    // crop top and bottom as needed
-                    tmpWand.CropImage(_width, _height, 0, (int) (newHeight - _height) / 2);
-                }
-
-                // sharpen after potentially resizing
-                // http://www.imagemagick.org/Usage/resize/#resize_unsharp
-                tmpWand.UnsharpMaskImage(0, 0.7, 0.7, 0.008);
-
-                tmpWand.WriteImage(localPath, true);
-
-                var file = new FileInfo(localPath);
-
-                return new PhotoWriterProcessingResult(true, _scaleName, tmpWand.ImageHeight, tmpWand.ImageWidth, file.Length, localPath, url);
-            }
+            return new PhotoWriterProcessingResult(true, _scaleName, tmpWand.ImageHeight, tmpWand.ImageWidth, file.Length, localPath, url);
         }
     }
 }

@@ -11,213 +11,212 @@ using SizePhotos.PhotoWriters;
 using SizePhotos.ResultWriters;
 
 
-namespace SizePhotos
+namespace SizePhotos;
+
+class Program
 {
-    class Program
+    static readonly string[] PHOTO_EXTENSIONS = { ".jpg", ".nef" };
+
+    List<ProcessingContext> _errorContexts = new List<ProcessingContext>();
+    readonly object _lockObj = new object();
+    readonly SizePhotoOptions _opts;
+    readonly PhotoPathHelper _pathHelper;
+    readonly IResultWriter _writer;
+    readonly PhotoProcessingPipeline _pipeline = new PhotoProcessingPipeline();
+
+
+    public Program(SizePhotoOptions opts)
     {
-        static readonly string[] PHOTO_EXTENSIONS = { ".jpg", ".nef" };
-
-        List<ProcessingContext> _errorContexts = new List<ProcessingContext>();
-        readonly object _lockObj = new object();
-        readonly SizePhotoOptions _opts;
-        readonly PhotoPathHelper _pathHelper;
-        readonly IResultWriter _writer;
-        readonly PhotoProcessingPipeline _pipeline = new PhotoProcessingPipeline();
+        _opts = opts;
+        _pathHelper = _opts.GetPathHelper();
+        _writer = GetWriter();
+    }
 
 
-        public Program(SizePhotoOptions opts)
+    public static void Main(string[] args)
+    {
+        var opts = new SizePhotoOptions();
+        opts.Parse(args);
+
+        var p = new Program(opts);
+        p.Run();
+    }
+
+
+    void Run()
+    {
+        if (!Directory.Exists(_opts.LocalPhotoRoot))
         {
-            _opts = opts;
-            _pathHelper = _opts.GetPathHelper();
-            _writer = GetWriter();
+            throw new DirectoryNotFoundException(string.Concat("The picture directory specified, ", _opts.LocalPhotoRoot, ", does not exist.  Please specify a directory containing photos."));
         }
 
-
-        public static void Main(string[] args)
+        if (File.Exists(_opts.Outfile))
         {
-            var opts = new SizePhotoOptions();
-            opts.Parse(args);
-
-            var p = new Program(opts);
-            p.Run();
+            throw new IOException(string.Concat("The specified output file, ", _opts.Outfile, ", already exists.  Please remove it before running this process."));
         }
 
+        BuildPipeline();
+        PrepareDirectories();
+        ResizePhotos();
 
-        void Run()
+        if (_errorContexts.Count > 0)
         {
-            if(!Directory.Exists(_opts.LocalPhotoRoot))
+            var sep = new string('*', 50);
+
+            Console.WriteLine(sep);
+            Console.WriteLine("** Some files had errors, please review!");
+            Console.WriteLine(sep);
+
+            foreach (var ctx in _errorContexts)
             {
-                throw new DirectoryNotFoundException(string.Concat("The picture directory specified, ", _opts.LocalPhotoRoot, ", does not exist.  Please specify a directory containing photos."));
-            }
+                Console.WriteLine(ctx.SourceFile);
 
-            if(File.Exists(_opts.Outfile))
-            {
-                throw new IOException(string.Concat("The specified output file, ", _opts.Outfile, ", already exists.  Please remove it before running this process."));
-            }
-
-            BuildPipeline();
-            PrepareDirectories();
-            ResizePhotos();
-
-            if(_errorContexts.Count > 0)
-            {
-                var sep = new string('*', 50);
-
-                Console.WriteLine(sep);
-                Console.WriteLine("** Some files had errors, please review!");
-                Console.WriteLine(sep);
-
-                foreach(var ctx in _errorContexts)
+                foreach (var msg in ctx.ErrorMessages)
                 {
-                    Console.WriteLine(ctx.SourceFile);
-
-                    foreach(var msg in ctx.ErrorMessages)
-                    {
-                        Console.WriteLine($"  - {msg}");
-                    }
+                    Console.WriteLine($"  - {msg}");
                 }
-
-                Environment.Exit(1);
             }
+
+            Environment.Exit(1);
         }
+    }
 
 
-        void BuildPipeline()
+    void BuildPipeline()
+    {
+        if (_opts.FastReview)
         {
-            if(_opts.FastReview)
+            // read
+            _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+
+            // write
+            _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", _pathHelper));
+
+            // terminate
+            _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+        }
+        else
+        {
+            // move source file
+            _pipeline.AddProcessor(new MovePhotoProcessor(_opts.Quiet, "src", true));
+
+            // load metadata
+            _pipeline.AddProcessor(new ExifPhotoProcessor());
+
+            // read
+            _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
+
+            // strip metadata
+            _pipeline.AddProcessor(new StripMetadataPhotoProcessor());
+
+            // write
+            _pipeline.AddProcessor(new PhotoWriterFixedSizePhotoProcessor(_opts.Quiet, "xs_sq", 120, 160, _pathHelper));
+            _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "xs", 120, 160, _pathHelper));
+            _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "sm", 480, 640, _pathHelper));
+            _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
+            _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", _pathHelper));
+            _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", _pathHelper));
+
+            // minify
+            _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
+            _pipeline.AddProcessor(new MinifyPhotoProcessor("sm", 72, _pathHelper));
+            _pipeline.AddProcessor(new MinifyPhotoProcessor("md", 72, _pathHelper));
+            _pipeline.AddProcessor(new MinifyPhotoProcessor("lg", 72, _pathHelper));
+
+            // terminate
+            _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+        }
+    }
+
+
+    void PrepareDirectories()
+    {
+        var outputs = _pipeline.GetOutputProcessors();
+
+        foreach (var output in outputs)
+        {
+            var dir = output.OutputSubdirectory;
+
+            if (Directory.Exists(_pathHelper.GetScaledLocalPath(dir)))
             {
-                // read
-                _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-
-                // write
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "review", _pathHelper));
-
-                // terminate
-                _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+                throw new IOException("At least one of the resize directories already exist.  Please ensure you need to run this script, and if so, remove these directories.");
             }
             else
             {
-                // move source file
-                _pipeline.AddProcessor(new MovePhotoProcessor(_opts.Quiet, "src", true));
-
-                // load metadata
-                _pipeline.AddProcessor(new ExifPhotoProcessor());
-
-                // read
-                _pipeline.AddProcessor(new RawTherapeePhotoReaderPhotoProcessor(_opts.Quiet, _pathHelper));
-
-                // strip metadata
-                _pipeline.AddProcessor(new StripMetadataPhotoProcessor());
-
-                // write
-                _pipeline.AddProcessor(new PhotoWriterFixedSizePhotoProcessor(_opts.Quiet, "xs_sq", 120, 160, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "xs", 120, 160, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "sm", 480, 640, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterScalePhotoProcessor(_opts.Quiet, "md", 768, 1024, _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "lg", _pathHelper));
-                _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", _pathHelper));
-
-                // minify
-                _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
-                _pipeline.AddProcessor(new MinifyPhotoProcessor("sm", 72, _pathHelper));
-                _pipeline.AddProcessor(new MinifyPhotoProcessor("md", 72, _pathHelper));
-                _pipeline.AddProcessor(new MinifyPhotoProcessor("lg", 72, _pathHelper));
-
-                // terminate
-                _pipeline.AddProcessor(new ContextTerminatorPhotoProcessor());
+                Directory.CreateDirectory(_pathHelper.GetScaledLocalPath(dir));
             }
         }
+    }
 
 
-        void PrepareDirectories()
+    void ResizePhotos()
+    {
+        var files = GetPhotos();
+        var vpus = Math.Max(Environment.ProcessorCount - 1, 1);
+
+        _writer.PreProcess(_opts.CategoryInfo);
+
+        MagickWandEnvironment.Genesis();
+
+        // try to leave a couple threads available for the GC
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = vpus };
+
+        Parallel.ForEach(files, opts, ProcessPhoto);
+
+        MagickWandEnvironment.Terminus();
+        _writer.PostProcess();
+    }
+
+
+    void ProcessPhoto(string file)
+    {
+        if (!_opts.Quiet)
         {
-            var outputs = _pipeline.GetOutputProcessors();
-
-            foreach(var output in outputs)
-            {
-                var dir = output.OutputSubdirectory;
-
-                if(Directory.Exists(_pathHelper.GetScaledLocalPath(dir)))
-                {
-                    throw new IOException("At least one of the resize directories already exist.  Please ensure you need to run this script, and if so, remove these directories.");
-                }
-                else
-                {
-                    Directory.CreateDirectory(_pathHelper.GetScaledLocalPath(dir));
-                }
-            }
+            Console.WriteLine($"Processing: {Path.GetFileName(file)}");
         }
 
+        var result = _pipeline.ProcessPhotoAsync(file).Result;
 
-        void ResizePhotos()
+        // additional check to clean up any wands - in particular for errors
+        if (result.Wand != null)
         {
-            var files = GetPhotos();
-            var vpus = Math.Max(Environment.ProcessorCount - 1, 1);
-
-            _writer.PreProcess(_opts.CategoryInfo);
-
-            MagickWandEnvironment.Genesis();
-
-            // try to leave a couple threads available for the GC
-            var opts = new ParallelOptions { MaxDegreeOfParallelism = vpus };
-
-            Parallel.ForEach(files, opts, ProcessPhoto);
-
-            MagickWandEnvironment.Terminus();
-            _writer.PostProcess();
+            result.Wand.Dispose();
         }
 
-
-        void ProcessPhoto(string file)
+        lock (_lockObj)
         {
-            if(!_opts.Quiet)
+            if (result.HasErrors)
             {
-                Console.WriteLine($"Processing: {Path.GetFileName(file)}");
+                _errorContexts.Add(result);
             }
-
-            var result = _pipeline.ProcessPhotoAsync(file).Result;
-
-            // additional check to clean up any wands - in particular for errors
-            if(result.Wand != null)
+            else
             {
-                result.Wand.Dispose();
-            }
-
-            lock(_lockObj)
-            {
-                if(result.HasErrors)
-                {
-                    _errorContexts.Add(result);
-                }
-                else
-                {
-                    _writer.AddResult(result);
-                }
+                _writer.AddResult(result);
             }
         }
+    }
 
 
-        IEnumerable<string> GetPhotos()
+    IEnumerable<string> GetPhotos()
+    {
+        return Directory.GetFiles(_opts.LocalPhotoRoot)
+            .Where(x => PHOTO_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+            .OrderBy(x => x)
+            .ToList();
+    }
+
+
+    IResultWriter GetWriter()
+    {
+        if (_opts.InsertMode)
         {
-            return Directory.GetFiles(_opts.LocalPhotoRoot)
-                .Where(x => PHOTO_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
-                .OrderBy(x => x)
-                .ToList();
+            return new PgsqlInsertResultWriter(_opts.Outfile);
         }
-
-
-        IResultWriter GetWriter()
+        else if (_opts.UpdateMode)
         {
-            if(_opts.InsertMode)
-            {
-                return new PgsqlInsertResultWriter(_opts.Outfile);
-            }
-            else if(_opts.UpdateMode)
-            {
-                return new PgsqlUpdateResultWriter(_opts.Outfile);
-            }
-
-            return new NoopResultWriter();
+            return new PgsqlUpdateResultWriter(_opts.Outfile);
         }
+
+        return new NoopResultWriter();
     }
 }

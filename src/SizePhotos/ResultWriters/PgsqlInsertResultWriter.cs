@@ -6,15 +6,15 @@ using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 
 
-namespace SizePhotos.ResultWriters
+namespace SizePhotos.ResultWriters;
+
+public class PgsqlInsertResultWriter
+    : BasePgsqlResultWriter
 {
-    public class PgsqlInsertResultWriter
-        : BasePgsqlResultWriter
+    readonly string _file;
+    CategoryInfo _category;
+    static readonly string[] _cols = new string[]
     {
-        readonly string _file;
-        CategoryInfo _category;
-        static readonly string[] _cols = new string[]
-        {
             "category_id",
             // scaled images
             "xs_height",
@@ -120,68 +120,68 @@ namespace SizePhotos.ResultWriters
             "light_value",
             "scale_factor_35_efl",
             "shutter_speed"
-        };
+    };
 
 
-        public PgsqlInsertResultWriter(string outputFile)
+    public PgsqlInsertResultWriter(string outputFile)
+    {
+        _file = outputFile;
+    }
+
+
+    public override void PreProcess(CategoryInfo category)
+    {
+        _category = category;
+        PrepareOutputStream();
+    }
+
+
+    public override void PostProcess()
+    {
+        FinalizeOutputStream();
+    }
+
+
+    public override void AddResult(ProcessingContext ctx)
+    {
+        _results.Add(ctx);
+    }
+
+
+    void PrepareOutputStream()
+    {
+        _writer = new StreamWriter(new FileStream(_file, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
+
+        WriteHeader();
+    }
+
+
+    void FinalizeOutputStream()
+    {
+        WriteResultSql();
+        WriteFooter();
+    }
+
+
+    void WriteResultSql()
+    {
+        WriteCategoryCreate();
+
+        WriteLookups();
+
+        foreach (var result in _results)
         {
-            _file = outputFile;
-        }
+            var exifData = result.GetExifResult()?.ExifData;
 
+            var xsSq = result.GetPhotoWriterResult("xs_sq");
+            var xs = result.GetPhotoWriterResult("xs");
+            var sm = result.GetPhotoWriterResult("sm");
+            var md = result.GetPhotoWriterResult("md");
+            var lg = result.GetPhotoWriterResult("lg");
+            var prt = result.GetPhotoWriterResult("prt");
+            var src = result.GetSuccessfulPhotoReaderResult();
 
-        public override void PreProcess(CategoryInfo category)
-        {
-            _category = category;
-            PrepareOutputStream();
-        }
-
-
-        public override void PostProcess()
-        {
-            FinalizeOutputStream();
-        }
-
-
-        public override void AddResult(ProcessingContext ctx)
-        {
-            _results.Add(ctx);
-        }
-
-
-        void PrepareOutputStream()
-        {
-            _writer = new StreamWriter(new FileStream(_file, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
-
-            WriteHeader();
-        }
-
-
-        void FinalizeOutputStream()
-        {
-            WriteResultSql();
-            WriteFooter();
-        }
-
-
-        void WriteResultSql()
-        {
-            WriteCategoryCreate();
-
-            WriteLookups();
-
-            foreach(var result in _results)
-            {
-                var exifData = result.GetExifResult()?.ExifData;
-
-                var xsSq = result.GetPhotoWriterResult("xs_sq");
-                var xs = result.GetPhotoWriterResult("xs");
-                var sm = result.GetPhotoWriterResult("sm");
-                var md = result.GetPhotoWriterResult("md");
-                var lg = result.GetPhotoWriterResult("lg");
-                var prt = result.GetPhotoWriterResult("prt");
-                var src = result.GetSuccessfulPhotoReaderResult();
-
-                var values = new string[] {
+            var values = new string[] {
                     "(SELECT currval('photo.category_id_seq'))",
                     // scaled images
                     xs.Height.ToString(),
@@ -289,76 +289,75 @@ namespace SizePhotos.ResultWriters
                     SqlHelper.SqlString(exifData?.ShutterSpeed)
                 };
 
-                _writer.WriteLine($"INSERT INTO photo.photo ({string.Join(", ", _cols)}) VALUES ({string.Join(", ", values)});");
-            }
-
-            WriteCategoryUpdate();
-
-            _writer.WriteLine();
+            _writer.WriteLine($"INSERT INTO photo.photo ({string.Join(", ", _cols)}) VALUES ({string.Join(", ", values)});");
         }
 
+        WriteCategoryUpdate();
 
-        void WriteCategoryCreate()
+        _writer.WriteLine();
+    }
+
+
+    void WriteCategoryCreate()
+    {
+        var result = _results.First();
+        var xs = result.GetPhotoWriterResult("xs");
+        var xsSq = result.GetPhotoWriterResult("xs_sq");
+
+        _writer.WriteLine(
+            $"INSERT INTO photo.category (name, year, teaser_photo_width, teaser_photo_height, teaser_photo_size, teaser_photo_path, teaser_photo_sq_width, teaser_photo_sq_height, teaser_photo_sq_size, teaser_photo_sq_path) " +
+            $"  VALUES (" +
+            $"    {SqlHelper.SqlString(_category.Name)}, " +
+            $"    {_category.Year}, " +
+            $"    {xs.Width}, " +
+            $"    {xs.Height}, " +
+            $"    {xs.FileSize}, " +
+            $"    {SqlHelper.SqlString(xs.Url)}, " +
+            $"    {xsSq.Width}, " +
+            $"    {xsSq.Height}, " +
+            $"    {xsSq.FileSize}, " +
+            $"    {SqlHelper.SqlString(xsSq.Url)});");
+
+        foreach (var role in _category.AllowedRoles)
         {
-            var result = _results.First();
-            var xs = result.GetPhotoWriterResult("xs");
-            var xsSq = result.GetPhotoWriterResult("xs_sq");
-
             _writer.WriteLine(
-                $"INSERT INTO photo.category (name, year, teaser_photo_width, teaser_photo_height, teaser_photo_size, teaser_photo_path, teaser_photo_sq_width, teaser_photo_sq_height, teaser_photo_sq_size, teaser_photo_sq_path) " +
+                $"INSERT INTO photo.category_role (category_id, role_id)" +
                 $"  VALUES (" +
-                $"    {SqlHelper.SqlString(_category.Name)}, " +
-                $"    {_category.Year}, " +
-                $"    {xs.Width}, " +
-                $"    {xs.Height}, " +
-                $"    {xs.FileSize}, " +
-                $"    {SqlHelper.SqlString(xs.Url)}, " +
-                $"    {xsSq.Width}, " +
-                $"    {xsSq.Height}, " +
-                $"    {xsSq.FileSize}, " +
-                $"    {SqlHelper.SqlString(xsSq.Url)});");
-
-            foreach(var role in _category.AllowedRoles)
-            {
-                _writer.WriteLine(
-                    $"INSERT INTO photo.category_role (category_id, role_id)" +
-                    $"  VALUES (" +
-                    $"    (SELECT currval('photo.category_id_seq'))," +
-                    $"    (SELECT id FROM maw.role WHERE name = {SqlHelper.SqlString(role)})" +
-                    $"  );"
-                );
-            }
-
-            _writer.WriteLine();
-        }
-
-
-        void WriteCategoryUpdate()
-        {
-            _writer.WriteLine(
-                "UPDATE photo.category c " +
-                "   SET photo_count = (SELECT COUNT(1) FROM photo.photo WHERE category_id = c.id), " +
-                "       create_date = (SELECT create_date FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo where category_id = c.id AND create_date IS NOT NULL)), " +
-                "       gps_latitude = (SELECT gps_latitude FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
-                "       gps_latitude_ref_id = (SELECT gps_latitude_ref_id FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
-                "       gps_longitude = (SELECT gps_longitude FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
-                "       gps_longitude_ref_id = (SELECT gps_longitude_ref_id FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
-                "       total_size_xs = (SELECT SUM(xs_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_xs_sq = (SELECT SUM(xs_sq_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_sm = (SELECT SUM(sm_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_md = (SELECT SUM(md_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_lg = (SELECT SUM(lg_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_prt = (SELECT SUM(prt_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       total_size_src = (SELECT SUM(src_size) FROM photo.photo WHERE category_id = c.id), " +
-                "       teaser_photo_size = (SELECT xs_size FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
-                "       teaser_photo_sq_height = (SELECT xs_sq_height FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
-                "       teaser_photo_sq_width = (SELECT xs_sq_width FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
-                "       teaser_photo_sq_path = (SELECT xs_sq_path FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
-                "       teaser_photo_sq_size = (SELECT xs_sq_size FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path) " +
-                " WHERE c.id = (SELECT currval('photo.category_id_seq'));"
+                $"    (SELECT currval('photo.category_id_seq'))," +
+                $"    (SELECT id FROM maw.role WHERE name = {SqlHelper.SqlString(role)})" +
+                $"  );"
             );
-
-            _writer.WriteLine();
         }
+
+        _writer.WriteLine();
+    }
+
+
+    void WriteCategoryUpdate()
+    {
+        _writer.WriteLine(
+            "UPDATE photo.category c " +
+            "   SET photo_count = (SELECT COUNT(1) FROM photo.photo WHERE category_id = c.id), " +
+            "       create_date = (SELECT create_date FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo where category_id = c.id AND create_date IS NOT NULL)), " +
+            "       gps_latitude = (SELECT gps_latitude FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
+            "       gps_latitude_ref_id = (SELECT gps_latitude_ref_id FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
+            "       gps_longitude = (SELECT gps_longitude FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
+            "       gps_longitude_ref_id = (SELECT gps_longitude_ref_id FROM photo.photo WHERE id = (SELECT MIN(id) FROM photo.photo WHERE category_id = c.id AND gps_latitude IS NOT NULL)), " +
+            "       total_size_xs = (SELECT SUM(xs_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_xs_sq = (SELECT SUM(xs_sq_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_sm = (SELECT SUM(sm_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_md = (SELECT SUM(md_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_lg = (SELECT SUM(lg_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_prt = (SELECT SUM(prt_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       total_size_src = (SELECT SUM(src_size) FROM photo.photo WHERE category_id = c.id), " +
+            "       teaser_photo_size = (SELECT xs_size FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
+            "       teaser_photo_sq_height = (SELECT xs_sq_height FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
+            "       teaser_photo_sq_width = (SELECT xs_sq_width FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
+            "       teaser_photo_sq_path = (SELECT xs_sq_path FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path), " +
+            "       teaser_photo_sq_size = (SELECT xs_sq_size FROM photo.photo WHERE category_id = c.id AND xs_path = c.teaser_photo_path) " +
+            " WHERE c.id = (SELECT currval('photo.category_id_seq'));"
+        );
+
+        _writer.WriteLine();
     }
 }
