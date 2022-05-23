@@ -13,7 +13,7 @@ It processes raw + jpg files in the following ways:
 - prepares a sql script that can make the photos available on the site
 
 ## Motivation
-I enjoy taking photos, and combining this with development makes a 
+I enjoy taking photos, and combining this with development makes a
 rewarding hobby for myself.  I have been using a version of this tool
 for many years, and thought it might be useful for others to use directly
 or as a starting point for more specific needs.
@@ -28,6 +28,33 @@ Arguments:
 - w = path to the root of this folder for the website
 - x = private
 - y = year
+
+### Running via podman
+
+```
+podman run -it --rm --security-opt label=disable -v /home/mmorano/maw_test/rawtherapee-config/:/config -v /home/mmorano/Desktop/:/src --env-file /home/mmorano/maw_test/podman-env/rawtherapee.env localhost/maw-size-photos-test -c 'Comet Pond' -p /src/size_photos_test -w /images -r 'friend admin' -y 2022 -i -o /src/test_comet_pond.sql
+```
+
+we map a config directory so we can customize values in camconst.json - which is currently needed for z6ii.
+
+rawtherapee.env:
+
+```
+RT_SETTINGS=/config
+```
+
+camconst.json (in config dir):
+
+```
+{"camera_constants": [
+	{ // Quality C, only color matrix and PDAF lines info
+		"make_model" : "Nikon Z 6_2",
+		"dcraw_matrix" : [8210, -2534, -683, -5355, 13338, 2212, -1143, 1928, 6464], // DNG v13.2
+		"pdaf_pattern" : [0, 12],
+		"pdaf_offset" : 32
+	}
+]}
+```
 
 ## Contributing
 I'm happy to accept pull requests.  By submitting a pull request, you
