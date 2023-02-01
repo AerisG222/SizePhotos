@@ -37,6 +37,8 @@ class Program
 
         var p = new Program(opts);
         p.Run();
+
+        Environment.Exit(0);
     }
 
     void Run()
