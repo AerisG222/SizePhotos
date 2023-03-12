@@ -115,6 +115,7 @@ class Program
             _pipeline.AddProcessor(new PhotoWriterPhotoProcessor(_opts.Quiet, "prt", _pathHelper));
 
             // minify
+            _pipeline.AddProcessor(new MinifyPhotoProcessor("xs_sq", 72, _pathHelper));
             _pipeline.AddProcessor(new MinifyPhotoProcessor("xs", 72, _pathHelper));
             _pipeline.AddProcessor(new MinifyPhotoProcessor("sm", 72, _pathHelper));
             _pipeline.AddProcessor(new MinifyPhotoProcessor("md", 72, _pathHelper));
