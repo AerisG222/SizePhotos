@@ -36,7 +36,7 @@ public class PreviewProcessor
 
     public async Task<ProcessedPhoto> ProcessAsync(string sourceFile)
     {
-        var filename = $"{Path.GetFileNameWithoutExtension(sourceFile)}_{Guid.NewGuid():N}.tif";
+        var filename = $"{Path.GetFileNameWithoutExtension(sourceFile)}.tif";
         var tif = Path.Combine(Path.GetDirectoryName(sourceFile), filename);
 
         await _rtConverter.ConvertAsync(sourceFile, tif);
