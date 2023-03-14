@@ -16,17 +16,21 @@ public class Worker
     readonly SizePhotoOptions _opts;
     readonly IPhotoProcessor _processor;
     readonly IResultWriter _resultWriter;
+    readonly IHostApplicationLifetime _appLifetime;
 
-    public Worker(SizePhotoOptions opts, IPhotoProcessor processor, IResultWriter resultWriter)
+    public Worker(IHostApplicationLifetime appLifetime, SizePhotoOptions opts, IPhotoProcessor processor, IResultWriter resultWriter)
     {
+        _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
         _opts = opts ?? throw new ArgumentNullException(nameof(opts));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _resultWriter = resultWriter ?? throw new ArgumentNullException(nameof(resultWriter));
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        return ResizePhotosAsync(stoppingToken);
+        await ResizePhotosAsync(stoppingToken);
+
+        _appLifetime.StopApplication();
     }
 
     async Task ResizePhotosAsync(CancellationToken stoppingToken)
