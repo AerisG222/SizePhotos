@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -66,21 +67,24 @@ public class PhotoResizer
             return ctx;
         }
 
+        var imgSharpResizeMode = spec.Mode switch
+        {
+            ResizeMode.Aspect => SixLabors.ImageSharp.Processing.ResizeMode.Max,
+            ResizeMode.Fixed => SixLabors.ImageSharp.Processing.ResizeMode.Crop,
+            _ => throw new InvalidOperationException()
+        };
+
         var opts = new ResizeOptions()
         {
-            Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max,
+            Mode = imgSharpResizeMode,
+            Position = AnchorPositionMode.Center,
             Size = new Size(spec.Width, spec.Height),
             Sampler = LanczosResampler.Lanczos3
         };
 
-        ctx.Resize(opts);
-
-        if(spec.Mode == ResizeMode.Fixed)
-        {
-            ctx.Crop(spec.Width, spec.Height);
-        }
-
-        return ctx.GaussianSharpen(0.6f);
+        return ctx
+            .Resize(opts)
+            .GaussianSharpen(0.6f);
     }
 
     ResizeResult BuildResult(ResizeSpec spec, Image image, string outputFile)

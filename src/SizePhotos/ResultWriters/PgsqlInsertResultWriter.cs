@@ -334,9 +334,9 @@ public class PgsqlInsertResultWriter
             throw new InvalidOperationException("should have at least 3 components of the image name!");
         }
 
-        var filename = fileParts[^0];
-        var sizeDir = fileParts[^1];
-        var categoryDir = fileParts[^2];
+        var filename = fileParts[^1];
+        var sizeDir = fileParts[^2];
+        var categoryDir = fileParts[^3];
 
         return $"{root}/{category.Year}/{categoryDir}/{sizeDir}/{filename}";
     }

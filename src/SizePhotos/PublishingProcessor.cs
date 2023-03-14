@@ -27,7 +27,7 @@ public class PublishingProcessor
         new ResizeSpec
         {
             Size = MawSize.Xs,
-            Mode = ResizeMode.AspectToWidth,
+            Mode = ResizeMode.Aspect,
             Width = 160,
             Height = 120,
             OutputDirectory = "xs"
@@ -35,7 +35,7 @@ public class PublishingProcessor
         new ResizeSpec
         {
             Size = MawSize.Sm,
-            Mode = ResizeMode.AspectToWidth,
+            Mode = ResizeMode.Aspect,
             Width = 640,
             Height = 480,
             OutputDirectory = "sm"
@@ -43,7 +43,7 @@ public class PublishingProcessor
         new ResizeSpec
         {
             Size = MawSize.Md,
-            Mode = ResizeMode.AspectToWidth,
+            Mode = ResizeMode.Aspect,
             Width = 1024,
             Height = 768,
             OutputDirectory = "md"
@@ -117,6 +117,8 @@ public class PublishingProcessor
 
         var src = MoveFileToFinalSourceDirectory(sourceFile);
 
+        File.Delete(tifPath);
+
         return new ProcessedPhoto
         {
             ExifData = exif,
@@ -139,17 +141,19 @@ public class PublishingProcessor
 
     string MoveFileToFinalSourceDirectory(string file)
     {
-        var srcDir = Path.Combine(Path.GetDirectoryName(file), DIR_SRC);
+        var srcFile = BuildNewSrcPath(file);
 
-        File.Move(file, srcDir);
+        File.Move(file, srcFile);
 
         var pp3 = $"{file}.pp3";
 
         if(File.Exists(pp3))
         {
-            File.Move(pp3, srcDir);
+            File.Move(pp3, BuildNewSrcPath(pp3));
         }
 
-        return Path.Combine(srcDir, Path.GetFileName(file));
+        return srcFile;
     }
+
+    string BuildNewSrcPath(string file) => Path.Combine(Path.GetDirectoryName(file), DIR_SRC, Path.GetFileName(file));
 }

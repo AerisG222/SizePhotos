@@ -4,6 +4,5 @@ public enum ResizeMode
 {
     None,
     Fixed,
-    AspectToWidth,
-    AspectToHeight
+    Aspect,
 }
