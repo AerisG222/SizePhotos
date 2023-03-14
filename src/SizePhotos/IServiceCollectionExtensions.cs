@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using SizePhotos.Exif;
-using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 using SizePhotos.ResultWriters;
@@ -16,7 +15,6 @@ public static class IServiceCollectionExtensions
             .AddPhotoProcessor(opts)
             .AddResultWriter(opts)
             .AddSingleton<PhotoResizer>()
-            .AddSingleton<PhotoMinifier>()
             .AddSingleton<MetadataReader>()
             .AddSingleton<RawTherapeeConverter>();
     }

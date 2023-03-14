@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using SizePhotos.Exif;
-using SizePhotos.Minification;
 using SizePhotos.PhotoReaders;
 using SizePhotos.PhotoWriters;
 
@@ -68,18 +67,15 @@ public class PublishingProcessor
 
     readonly RawTherapeeConverter _rtConverter;
     readonly PhotoResizer _resizer;
-    readonly PhotoMinifier _minifier;
     readonly MetadataReader _metadataReader;
 
     public PublishingProcessor(
         RawTherapeeConverter rtConverter,
         PhotoResizer resizer,
-        PhotoMinifier minifier,
         MetadataReader metadataReader
     ) {
         _rtConverter = rtConverter ?? throw new ArgumentNullException(nameof(rtConverter));
         _resizer = resizer ?? throw new ArgumentNullException(nameof(resizer));
-        _minifier = minifier ?? throw new ArgumentNullException(nameof(minifier));
         _metadataReader = metadataReader ?? throw new ArgumentNullException(nameof(metadataReader));
     }
 
@@ -110,8 +106,6 @@ public class PublishingProcessor
         var resizeResult = await _resizer.ResizePhotoAsync(tifPath, _specs);
 
         var filesToMinify = resizeResult.Select(x => x.OutputFile);
-
-        await _minifier.MinifyPhotosAsync(filesToMinify, 72);
 
         var prt = resizeResult.Single(x => x.Size == MawSize.Prt);
 
