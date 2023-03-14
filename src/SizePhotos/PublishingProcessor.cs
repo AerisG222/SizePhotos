@@ -12,6 +12,8 @@ namespace SizePhotos;
 public class PublishingProcessor
     : IPhotoProcessor
 {
+    const string DIR_SRC = "src";
+
     static readonly ResizeSpec[] _specs = new ResizeSpec[]
     {
         new ResizeSpec
@@ -83,6 +85,13 @@ public class PublishingProcessor
 
     public void PrepareDirectories(string sourceDirectory)
     {
+        var newSrc = Path.Combine(sourceDirectory, DIR_SRC);
+
+        if(!Directory.Exists(newSrc))
+        {
+            Directory.CreateDirectory(newSrc);
+        }
+
         foreach(var spec in _specs)
         {
             Directory.CreateDirectory(Path.Combine(sourceDirectory, spec.OutputDirectory));
@@ -91,20 +100,22 @@ public class PublishingProcessor
 
     public async Task<ProcessedPhoto> ProcessAsync(string sourceFile)
     {
-        var filename = $"{Path.GetFileNameWithoutExtension(sourceFile)}_{Guid.NewGuid():N}.tif";
-        var tif = Path.Combine(Path.GetDirectoryName(sourceFile), filename);
+        var tifFilename = $"{Path.GetFileNameWithoutExtension(sourceFile)}.tif";
+        var tifPath = Path.Combine(Path.GetDirectoryName(sourceFile), tifFilename);
 
         var exif = await _metadataReader.ReadMetadataAsync(sourceFile);
 
-        await _rtConverter.ConvertAsync(sourceFile, tif);
+        await _rtConverter.ConvertAsync(sourceFile, tifPath);
 
-        var resizeResult = await _resizer.ResizePhotoAsync(tif, _specs);
+        var resizeResult = await _resizer.ResizePhotoAsync(tifPath, _specs);
 
         var filesToMinify = resizeResult.Select(x => x.OutputFile);
 
         await _minifier.MinifyPhotosAsync(filesToMinify, 72);
 
         var prt = resizeResult.Single(x => x.Size == MawSize.Prt);
+
+        var src = MoveFileToFinalSourceDirectory(sourceFile);
 
         return new ProcessedPhoto
         {
@@ -118,11 +129,27 @@ public class PublishingProcessor
             Src = new ResizeResult
             {
                 Size = MawSize.Src,
-                OutputFile = sourceFile,
+                OutputFile = src,
                 Width = prt.Width,
                 Height = prt.Height,
-                SizeInBytes = (new FileInfo(sourceFile)).Length
+                SizeInBytes = new FileInfo(src).Length
             }
         };
+    }
+
+    string MoveFileToFinalSourceDirectory(string file)
+    {
+        var srcDir = Path.Combine(Path.GetDirectoryName(file), DIR_SRC);
+
+        File.Move(file, srcDir);
+
+        var pp3 = $"{file}.pp3";
+
+        if(File.Exists(pp3))
+        {
+            File.Move(pp3, srcDir);
+        }
+
+        return Path.Combine(srcDir, Path.GetFileName(file));
     }
 }

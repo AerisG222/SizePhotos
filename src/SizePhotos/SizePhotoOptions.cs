@@ -55,13 +55,6 @@ public class SizePhotoOptions
         }
     }
 
-    // don't love the fact that we update this obj at all, so adding this method
-    // so it is easier to see where used until it can be refactored
-    public void ResetLocalRoot(string newRoot)
-    {
-        LocalPhotoRoot = newRoot;
-    }
-
     RootCommand BuildRootCommand()
     {
         var fastReviewOption = new Option<bool>(new[] { "-f", "--fast-review" }, "Quick conversion to review files to keep or throw away");

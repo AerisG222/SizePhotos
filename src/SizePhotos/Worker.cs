@@ -43,11 +43,6 @@ public class Worker
 
     async Task ResizePhotosAsync(CancellationToken stoppingToken)
     {
-        if(!_opts.FastReview)
-        {
-            MoveSourceFiles();
-        }
-
         var files = GetPhotos().ToArray();
         var parallelOpts = new ParallelOptions
         {
@@ -86,19 +81,5 @@ public class Worker
         return Directory.EnumerateFiles(_opts.LocalPhotoRoot)
             .Where(x => PHOTO_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
             .ToList();
-    }
-
-    void MoveSourceFiles()
-    {
-        var newRoot = Path.Combine(_opts.LocalPhotoRoot, "src");
-
-        Directory.CreateDirectory(newRoot);
-
-        foreach(var file in Directory.EnumerateFiles(_opts.LocalPhotoRoot))
-        {
-            File.Move(file, Path.Combine(newRoot));
-        }
-
-        _opts.ResetLocalRoot(newRoot);
     }
 }
