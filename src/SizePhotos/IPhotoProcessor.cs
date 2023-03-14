@@ -4,6 +4,6 @@ namespace SizePhotos;
 
 public interface IPhotoProcessor
 {
-    Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext context);
-    IPhotoProcessor Clone();
+    void PrepareDirectories(string sourceDirectory);
+    Task<ProcessedPhoto> ProcessAsync(string sourceFile);
 }

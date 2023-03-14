@@ -1,13 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SizePhotos.ResultWriters;
 
 public class PgsqlUpdateResultWriter
-    : BasePgsqlResultWriter
+    : IResultWriter
 {
-    readonly string _file;
-
     static readonly string[] _cols = new string[]
     {
             // scaled images
@@ -116,43 +115,32 @@ public class PgsqlUpdateResultWriter
             "shutter_speed"
     };
 
-    public PgsqlUpdateResultWriter(string outputFile)
+    public void WriteOutput(string outputFile, CategoryInfo category, IEnumerable<ProcessedPhoto> photos)
     {
-        _file = outputFile;
-    }
+        if(string.IsNullOrWhiteSpace(outputFile))
+        {
+            throw new ArgumentNullException(nameof(outputFile));
+        }
 
-    public override void PreProcess(CategoryInfo category)
-    {
-        PrepareOutputStream();
-    }
+        using var writer = new StreamWriter(new FileStream(outputFile, FileMode.Create));
 
-    public override void PostProcess()
-    {
-        FinalizeOutputStream();
-    }
+        writer.WriteHeader();
 
-    public override void AddResult(ProcessingContext context)
-    {
-        _results.Add(context);
-    }
+        writer.WriteLookups(photos);
+        //WriteResultSql(writer, photos);
 
-    void PrepareOutputStream()
-    {
-        _writer = new StreamWriter(new FileStream(_file, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192, FileOptions.None));
+        writer.WriteFooter();
 
-        WriteHeader();
-    }
-
-    void FinalizeOutputStream()
-    {
-        WriteResultSql();
-        WriteFooter();
+        writer.Flush();
     }
 
     void WriteResultSql()
     {
-        throw new NotImplementedException("Sorry, I was lazy.  If you want to run an update, please add the necessary logic to update the category after photos are updated (i.e. sizes).  " +
-                                          "Also fix the logic below (why is the category updated each time through the loop?");
+        throw new NotImplementedException(
+            "Sorry, I was lazy.  If you want to run an update, please add the necessary logic " +
+            "to update the category after photos are updated (i.e. sizes).  Also fix the logic " +
+            "below (why is the category updated each time through the loop?)"
+        );
 
         /*
         WriteLookups();
@@ -297,6 +285,6 @@ public class PgsqlUpdateResultWriter
             _writer.WriteLine();
 
         }
-            */
+        */
     }
 }

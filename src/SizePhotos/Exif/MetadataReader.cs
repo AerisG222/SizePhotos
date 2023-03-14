@@ -1,29 +1,13 @@
-using System;
 using System.Threading.Tasks;
 using NExifTool;
 
 namespace SizePhotos.Exif;
 
-public class ExifPhotoProcessor
-    : IPhotoProcessor
+public class MetadataReader
 {
-    public IPhotoProcessor Clone()
+    public Task<ExifData> ReadMetadataAsync(string file)
     {
-        return (IPhotoProcessor)this.MemberwiseClone();
-    }
-
-    public async Task<IProcessingResult> ProcessPhotoAsync(ProcessingContext ctx)
-    {
-        try
-        {
-            var data = await ReadExifDataAsync(ctx.SourceFile);
-
-            return new ExifProcessingResult(true, data);
-        }
-        catch (Exception ex)
-        {
-            return new ExifProcessingResult($"Error obtaining exif data: {ex.Message}");
-        }
+        return ReadExifDataAsync(file);
     }
 
     async Task<ExifData> ReadExifDataAsync(string photoPath)

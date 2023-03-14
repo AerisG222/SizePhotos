@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+
 namespace SizePhotos.ResultWriters;
 
 public interface IResultWriter
 {
-    void PreProcess(CategoryInfo category);
-    void AddResult(ProcessingContext ctx);
-    void PostProcess();
+    void WriteOutput(string outputFile, CategoryInfo category, IEnumerable<ProcessedPhoto> photos);
 }
