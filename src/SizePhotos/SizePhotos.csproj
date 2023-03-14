@@ -26,8 +26,8 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="3.0.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
         <PackageReference Include="NExifTool" Version="0.11.0" />
-        <PackageReference Include="NJpegOptim" Version="0.1.1" />
-        <PackageReference Include="NJpegTran" Version="0.1.1" />
-        <PackageReference Include="NRawTherapee" Version="0.3.1" />
+        <PackageReference Include="NJpegOptim" Version="0.2.0" />
+        <PackageReference Include="NJpegTran" Version="0.2.1" />
+        <PackageReference Include="NRawTherapee" Version="0.4.1" />
     </ItemGroup>
 </Project>

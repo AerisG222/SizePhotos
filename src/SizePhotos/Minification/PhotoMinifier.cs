@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NJpegOptim;
 using NJpegTran;
@@ -45,6 +46,10 @@ public class PhotoMinifier
 
         var jt = new JpegTran(opts);
 
-        await jt.RunAsync(file);
+        var tranfile = $"{file}.tran.jpg";
+
+        await jt.RunAsync(file, tranfile);
+
+        File.Move(tranfile, file, true);
     }
 }
