@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SizePhotos.ResultWriters;
 
 namespace SizePhotos;
@@ -15,12 +16,19 @@ public class Worker
     static readonly string[] PHOTO_EXTENSIONS = { ".jpg", ".nef" };
     readonly SizePhotoOptions _opts;
     readonly IPhotoProcessor _processor;
+    readonly ILogger _log;
     readonly IResultWriter _resultWriter;
     readonly IHostApplicationLifetime _appLifetime;
 
-    public Worker(IHostApplicationLifetime appLifetime, SizePhotoOptions opts, IPhotoProcessor processor, IResultWriter resultWriter)
-    {
+    public Worker(
+        IHostApplicationLifetime appLifetime,
+        ILogger<Worker> log,
+        SizePhotoOptions opts,
+        IPhotoProcessor processor,
+        IResultWriter resultWriter
+    ) {
         _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
+        _log = log ?? throw new ArgumentNullException(nameof(log));
         _opts = opts ?? throw new ArgumentNullException(nameof(opts));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _resultWriter = resultWriter ?? throw new ArgumentNullException(nameof(resultWriter));
@@ -67,7 +75,7 @@ public class Worker
     {
         if (!_opts.Quiet)
         {
-            Console.WriteLine($"Processing: {Path.GetFileName(file)}");
+            _log.LogInformation("Processing: {Path}", Path.GetFileName(file));
         }
 
         return _processor.ProcessAsync(file);

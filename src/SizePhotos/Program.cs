@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace SizePhotos;
 
@@ -11,16 +13,24 @@ class Program
     public static async Task Main(string[] args)
     {
         var host = CreateHostBuilder(args).Build();
-
+        var log = host.Services.GetRequiredService<ILogger<Program>>();
+        var sw = new Stopwatch();
         try
         {
+            log.LogInformation("Starting to process photos at {Time}", DateTime.Now);
+
+            sw.Start();
             await host.RunAsync();
+            sw.Stop();
         }
         catch(Exception ex)
         {
-            Console.WriteLine($"Error encountered running application: {ex.Message}");
+
+            log.LogError(ex, "Error encountered running application: {Error}", ex.Message);
             Environment.Exit(1);
         }
+
+        log.LogInformation("Completed processing photos, took {Seconds} seconds", sw.Elapsed.TotalSeconds);
 
         Environment.Exit(0);
     }

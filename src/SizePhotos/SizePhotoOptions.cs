@@ -49,16 +49,9 @@ public class SizePhotoOptions
 
         if (errors.Any())
         {
-            Console.WriteLine("Errors processing options:");
+            var msg = $"Errors processing options:\n{string.Join("\n  - ", errors)}";
 
-            foreach (var err in errors)
-            {
-                Console.WriteLine($"  - {err}");
-            }
-
-            Console.WriteLine("Exiting");
-
-            Environment.Exit(1);
+            throw new ApplicationException(msg);
         }
     }
 
