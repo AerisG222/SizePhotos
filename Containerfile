@@ -16,9 +16,6 @@ FROM fedora:37
 RUN dnf install -y \
     dotnet-runtime-7.0 \
     perl-Image-ExifTool \
-    jpegoptim \
-    libjpeg-turbo-utils \
-    ImageMagick-devel \
     rawtherapee \
   	&& dnf clean all \
   	&& rm -rf /var/cache/yum
