@@ -22,6 +22,8 @@ public class PhotoResizer
 
             var outputFile = GetOutputFilename(srcFile, spec);
 
+            // https://docs.sixlabors.com/api/ImageSharp/SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder.html#SixLabors_ImageSharp_Formats_Jpeg_JpegEncoder_Quality
+            // default quality: 75
             await copy.SaveAsJpegAsync(outputFile);
 
             results.Add(BuildResult(spec, copy, outputFile));
@@ -40,6 +42,8 @@ public class PhotoResizer
 
         var outputFile = GetOutputFilename(srcFile, spec);
 
+        // https://docs.sixlabors.com/api/ImageSharp/SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder.html#SixLabors_ImageSharp_Formats_Jpeg_JpegEncoder_Quality
+        // default quality: 75
         await image.SaveAsJpegAsync(outputFile);
 
         return BuildResult(spec, image, outputFile);
