@@ -14,11 +14,11 @@ public class PhotoResizer
     {
         var results = new List<ResizeResult>();
         using var image = Image.Load(srcFile);
+        StripMetadata(image);
 
         foreach(var spec in specs)
         {
             using var copy = image.Clone(ctx => Resize(ctx, spec));
-            //StripMetadata(copy);
 
             var outputFile = GetOutputFilename(srcFile, spec);
 
@@ -34,8 +34,9 @@ public class PhotoResizer
     {
         using var image = Image.Load(srcFile);
 
+        StripMetadata(image);
+
         image.Mutate(ctx => Resize(ctx, spec));
-        //StripMetadata(image);
 
         var outputFile = GetOutputFilename(srcFile, spec);
 
