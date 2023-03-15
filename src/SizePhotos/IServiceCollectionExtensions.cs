@@ -1,8 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
+using SizePhotos.Converters;
 using SizePhotos.Exif;
-using SizePhotos.PhotoReaders;
-using SizePhotos.PhotoWriters;
+using SizePhotos.Processors;
 using SizePhotos.ResultWriters;
+using SizePhotos.Transforms;
 
 namespace SizePhotos;
 

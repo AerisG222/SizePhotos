@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using SizePhotos.PhotoReaders;
-using SizePhotos.PhotoWriters;
+using SizePhotos.Converters;
+using SizePhotos.Transforms;
 
-namespace SizePhotos;
+namespace SizePhotos.Processors;
 
 public class PreviewProcessor
     : IPhotoProcessor

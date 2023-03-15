@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NRawTherapee;
 using NRawTherapee.OutputFormat;
 
-namespace SizePhotos.PhotoReaders;
+namespace SizePhotos.Converters;
 
 public class RawTherapeeConverter
 {

@@ -6,7 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 
-namespace SizePhotos.PhotoWriters;
+namespace SizePhotos.Transforms;
 
 public class PhotoResizer
 {

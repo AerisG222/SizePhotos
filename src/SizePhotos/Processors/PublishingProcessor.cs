@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using SizePhotos.Exif;
-using SizePhotos.PhotoReaders;
-using SizePhotos.PhotoWriters;
+using SizePhotos.Converters;
+using SizePhotos.Transforms;
 
-namespace SizePhotos;
+namespace SizePhotos.Processors;
 
 public class PublishingProcessor
     : IPhotoProcessor

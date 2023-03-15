@@ -1,5 +1,5 @@
 using SizePhotos.Exif;
-using SizePhotos.PhotoWriters;
+using SizePhotos.Transforms;
 
 namespace SizePhotos;
 

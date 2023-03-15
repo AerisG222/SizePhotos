@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace SizePhotos;
+namespace SizePhotos.Processors;
 
 public interface IPhotoProcessor
 {

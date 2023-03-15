@@ -1,4 +1,4 @@
-namespace SizePhotos.PhotoWriters;
+namespace SizePhotos.Transforms;
 
 public class ResizeSpec
 {
