@@ -11,7 +11,7 @@ RUN dotnet publish -o /app -c Release -r linux-x64 --no-self-contained
 
 
 # build runtime image
-FROM fedora:37
+FROM fedora:38
 
 RUN dnf install -y \
     dotnet-runtime-7.0 \
