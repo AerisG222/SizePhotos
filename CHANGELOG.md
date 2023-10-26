@@ -1,5 +1,12 @@
 # Version History
 
+## 0.7.1 (10/26/2023)
+
+- use a new pre-defined rawtherapee processing profile (Standard Film Curve ISO Low) which addresses an issue where some colors in photos were washed out
+- update test scripts to reference .net7 build of application
+- update container to use Fedora 38
+- updated ImageSharp
+
 ## 0.7.0 (03/14/2023)
 
 - updated to .net 7
