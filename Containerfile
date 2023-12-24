@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 
@@ -7,14 +7,14 @@ COPY pp3/. ./pp3/
 COPY src/. ./src/
 
 RUN dotnet restore
-RUN dotnet publish -o /app -c Release -r linux-x64 --no-self-contained
+RUN dotnet publish src/SizePhotos/SizePhotos.csproj -o /app -c Release -r linux-x64 --no-self-contained
 
 
 # build runtime image
-FROM fedora:38
+FROM fedora:39
 
 RUN dnf install -y \
-    dotnet-runtime-7.0 \
+    dotnet-runtime-8.0 \
     perl-Image-ExifTool \
     rawtherapee \
   	&& dnf clean all \
