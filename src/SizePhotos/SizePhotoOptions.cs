@@ -83,43 +83,20 @@ public class SizePhotoOptions
                 noopModeOption
             };
 
-        rootCommand.SetHandler((
-            bool fastReview,
-            string category,
-            string outFile,
-            string photoDir,
-            string webPhotoRoot,
-            string[] allowedRoles,
-            ushort year,
-            bool quiet,
-            bool sqlInsertMode,
-            bool sqlUpdateMode,
-            bool noOutputMode) =>
+        rootCommand.SetHandler(context =>
         {
-            FastReview = fastReview;
-            CategoryName = category;
-            Outfile = outFile;
-            LocalPhotoRoot = photoDir;
-            WebPhotoRoot = webPhotoRoot;
-            AllowedRoles = allowedRoles;
-            Year = year;
-            Quiet = quiet;
-            InsertMode = sqlInsertMode;
-            UpdateMode = sqlUpdateMode;
-            NoOutputMode = noOutputMode;
-        },
-            fastReviewOption,
-            categoryOption,
-            outFileOption,
-            photoDirOption,
-            webPhotoRootOption,
-            allowedRolesOption,
-            yearOption,
-            quietOption,
-            insertModeOption,
-            updateModeOption,
-            noopModeOption
-        );
+            FastReview = context.ParseResult.GetValueForOption(fastReviewOption);
+            CategoryName = context.ParseResult.GetValueForOption(categoryOption);
+            Outfile = context.ParseResult.GetValueForOption(outFileOption);
+            LocalPhotoRoot = context.ParseResult.GetValueForOption(photoDirOption);
+            WebPhotoRoot = context.ParseResult.GetValueForOption(webPhotoRootOption);
+            AllowedRoles = context.ParseResult.GetValueForOption(allowedRolesOption);
+            Year = context.ParseResult.GetValueForOption(yearOption);
+            Quiet = context.ParseResult.GetValueForOption(quietOption);
+            InsertMode = context.ParseResult.GetValueForOption(insertModeOption);
+            UpdateMode = context.ParseResult.GetValueForOption(updateModeOption);
+            NoOutputMode = context.ParseResult.GetValueForOption(noopModeOption);
+        });
 
         return rootCommand;
     }
