@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
+using SizePhotos.Converters;
 
 namespace SizePhotos;
 
@@ -9,6 +10,7 @@ public class SizePhotoOptions
 {
     CategoryInfo _category;
 
+    public ProcessingProfile Profile { get; private set; }
     public bool FastReview { get; private set; }
     public string CategoryName { get; private set; }
     public string Outfile { get; private set; }
@@ -57,6 +59,7 @@ public class SizePhotoOptions
 
     RootCommand BuildRootCommand()
     {
+        var profile = new Option<ProcessingProfile>(new[] { "--profile" }, () => ProcessingProfile.Auto, "Specify one of [auto, neutral, or film]");
         var fastReviewOption = new Option<bool>(new[] { "-f", "--fast-review" }, "Quick conversion to review files to keep or throw away");
         var categoryOption = new Option<string>(new[] { "-c", "--category" }, "Name of the category for these photos");
         var outFileOption = new Option<string>(new[] { "-o", "--out-file" }, "Path to the output SQL file that will be generated");
@@ -70,6 +73,7 @@ public class SizePhotoOptions
         var noopModeOption = new Option<bool>(new[] { "-n", "--no-output-mode" }, "Do not generate an output file, useful when reprocessing");
 
         var rootCommand = new RootCommand("A utility to prepare photos to be shown on mikeandwan.us") {
+                profile,
                 fastReviewOption,
                 categoryOption,
                 outFileOption,
@@ -85,6 +89,7 @@ public class SizePhotoOptions
 
         rootCommand.SetHandler(context =>
         {
+            Profile = context.ParseResult.GetValueForOption(profile);
             FastReview = context.ParseResult.GetValueForOption(fastReviewOption);
             CategoryName = context.ParseResult.GetValueForOption(categoryOption);
             Outfile = context.ParseResult.GetValueForOption(outFileOption);

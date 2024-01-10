@@ -8,6 +8,28 @@ Curve=1;0;0;0.11;0.089999999999999997;0.32000000000000001;0.42999999999999999;0.
 Enabled=true
 Method=Blend
 
+[Directional Pyramid Denoising]
+Enabled=true
+Enhance=false
+Median=true
+Luma=50
+Ldetail=60
+Chroma=0
+Method=Lab
+LMethod=SLI
+CMethod=AUT
+C2Method=AUTO
+SMethod=shal
+MedMethod=55
+RGBMethod=soft
+MethodMed=Lpab
+Redchro=0
+Bluechro=0
+Gamma=1.7
+Passes=1
+LCurve=0;
+CCCurve=0;
+
 [LensProfile]
 LcMode=lfauto
 UseDistortion=true
@@ -25,5 +47,8 @@ DCPIlluminant=0
 CA=true
 HotPixelFilter=true
 
-[PostDemosaicSharpening]
-Enabled=true
+[RAW Bayer]
+Method=lmmse
+
+[RAW X-Trans]
+Method=1-pass (medium)

@@ -101,7 +101,7 @@ public class PublishingProcessor
 
         var exif = await _metadataReader.ReadMetadataAsync(sourceFile);
 
-        await _rtConverter.ConvertAsync(sourceFile, tifPath);
+        await _rtConverter.ConvertAsync(sourceFile, tifPath, exif);
 
         var resizeResult = await _resizer.ResizePhotoAsync(tifPath, _specs);
 
