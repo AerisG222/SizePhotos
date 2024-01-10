@@ -19,7 +19,7 @@ public class RawTherapeeConverter
         _opts = opts ?? throw new ArgumentNullException(nameof(opts));
     }
 
-    public Task ConvertAsync(string sourceFile, string destFile, ExifData exifData)
+    public async Task ConvertAsync(string sourceFile, string destFile, ExifData exifData)
     {
         var opts = new Options
         {
@@ -68,7 +68,7 @@ public class RawTherapeeConverter
 
         var rt = new RawTherapee(opts);
 
-        return rt.ConvertAsync(sourceFile);
+        await rt.ConvertAsync(sourceFile);
     }
 
     static bool IsRawFile(string file)
