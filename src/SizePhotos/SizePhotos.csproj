@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Description>Tool to prepare photos for my website</Description>
         <AssemblyTitle>SizePhotos</AssemblyTitle>
-        <VersionPrefix>0.8.0</VersionPrefix>
+        <VersionPrefix>0.9.0</VersionPrefix>
         <Authors>Mike Morano &lt;mmorano@mikeandwan.us&gt;</Authors>
         <TargetFramework>net8.0</TargetFramework>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -23,9 +23,9 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.1" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-        <PackageReference Include="NExifTool" Version="0.11.0" />
+        <PackageReference Include="NExifTool" Version="0.12.0" />
         <PackageReference Include="NRawTherapee" Version="0.4.1" />
     </ItemGroup>
 </Project>
