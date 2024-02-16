@@ -47,7 +47,7 @@ public class RawTherapeeConverter
                     if(exifData.Iso < 3200) {
                         opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, $"{prefix}_iso_low.pp3"));
                     }
-                    else if(exifData.Iso < 6400) {
+                    else if(exifData.Iso < 20_000) {
                         opts.AddUserSpecifiedPp3Source(Path.Combine(AppContext.BaseDirectory, $"{prefix}_iso_medium.pp3"));
                     }
                     else {
